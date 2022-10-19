@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STM32 Debug",
+            "cwd":  "${workspaceRoot}",
+            "executable": "./bin/lps-node-firmware.elf", 
+            "request": "launch",
+            "type": "cortex-debug",
+            "device": "STM32F072",
+            "svdFile": "STM32F072x.svd",
+            "servertype": "openocd",
+            "configFiles": ["interface/jlink.cfg", "target/stm32f0x.cfg"],
+            "runToMain": true,
+            "showDevDebugOutput": "raw",
+            "preLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "enable breakpoint",
+                "monitor reset"
+            ]
+        },
+    ]
+}

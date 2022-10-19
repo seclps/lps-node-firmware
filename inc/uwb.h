@@ -34,6 +34,8 @@
 
 #define MAX_ANCHORS 6
 
+extern uint32_t tesla_counter;
+
 typedef struct uwbConfig_s {
   uint8_t mode;
   uint8_t address[8];

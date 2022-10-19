@@ -35,6 +35,9 @@
 #include <semphr.h>
 #include <task.h>
 
+TaskHandle_t teslaTaskHandle = 0;
+uint32_t tesla_counter;
+
 // Implemented UWB algoritm. The dummy one is at the end of this file.
 static uwbAlgorithm_t dummyAlgorithm;
 extern uwbAlgorithm_t uwbTwrAnchorAlgorithm;
@@ -89,9 +92,19 @@ static void rxfailedcallback(dwDevice_t *dev) {
   timeout = algorithm->onEvent(dev, eventReceiveFailed);
 }
 
+void teslaTask (void *p) {
+    while (1) {
+        vTaskDelay(1);
+        tesla_counter++;
+		if (tesla_counter % 1000 == 0)
+        	printf("tesla time=%lds \r\n ", tesla_counter/1000);
+    }
+    vTaskDelete(teslaTaskHandle);
+}
 
 void uwbInit()
 {
+   tesla_counter = 0;
   // Initializing the low level radio handling
   static StaticSemaphore_t irqSemaphoreBuffer;
   irqSemaphore = xSemaphoreCreateBinaryStatic(&irqSemaphoreBuffer);
@@ -177,8 +190,18 @@ void uwbInit()
 
   dwCommitConfiguration(dwm);
 
+ 
+    static StaticTask_t teslaStaticTask;
+    static StackType_t teslaStaticStack[configMINIMAL_STACK_SIZE];
+
+    xTaskCreateStatic(teslaTask, "teslaTask", configMINIMAL_STACK_SIZE, NULL,
+                      configMAX_PRIORITIES - 1, teslaStaticStack, &teslaStaticTask);
+    
+  //xTaskCreate(teslaTask, "teslaTask", 200, (void*) 0, 0, &teslaTaskHandle);
+    
   isInit = true;
 }
+
 
 bool uwbTest()
 {
@@ -229,10 +252,10 @@ static void uwbTask(void* parameters)
 void uwbStart()
 {
   static StaticTask_t uwbStaticTask;
-  static StackType_t uwbStaticStack[2*configMINIMAL_STACK_SIZE];
+  static StackType_t uwbStaticStack[configMINIMAL_STACK_SIZE];
 
   if (isInit) {
-    xTaskCreateStatic(uwbTask, "uwb", 2*configMINIMAL_STACK_SIZE, NULL,
+    xTaskCreateStatic(uwbTask, "uwb", configMINIMAL_STACK_SIZE, NULL,
                       configMAX_PRIORITIES - 1, uwbStaticStack, &uwbStaticTask);
   }
 }

@@ -1,0 +1,693 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.81
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# This is free software; see the source for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# This program built for i386-apple-darwin11.3.0
+
+# Make data base, printed on Mon Aug 29 12:18:09 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# makefile (from `Makefile', line 51)
+INCLUDES = -Iinc -Iinc/$(CPU) -I$(HAL_ROOT)/Inc -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc -Ilib/freertos/inc -Ivendor/libdw1000/inc
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# makefile
+CURDIR := /Users/mahyar/Documents/GitHub/lps-node-firmware
+# makefile
+SHELL = /bin/sh
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
+# environment
+_ = /usr/bin/make
+# makefile (from `Makefile', line 68)
+CFLAGS = $(PROCESSOR) $(INCLUDES) -O3 -g3 -Wall -Wno-pointer-sign -std=gnu11 -ffunction-sections -fdata-sections
+# makefile (from `Makefile', line 25)
+FREERTOS_OBJS = list queue timers tasks port event_groups
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# makefile (from `Makefile', line 76)
+AS = $(PREFIX)as
+# makefile (from `Makefile', line 54)
+OBJS = $(foreach mod, $(FREERTOS_OBJS), lib/freertos/src/$(mod).o) src/f0/startup_stm32f072xb.o src/f0/system_stm32f0xx.o src/f0/stm32f0xx_it.o src/f0/stm32f0xx_hal_msp.o src/f0/gpio.o src/f0/i2c.o src/f0/spi.o src/f0/system.o src/f0/usart.o src/f0/usbd_conf.o src/eeprom.o src/bootmode.o src/main.o src/usb_device.o src/usbd_cdc_if.o src/usbd_desc.o src/lps25h.o src/led.o src/button.o src/cfg.o src/usbcomm.o src/test_support.o src/production_test.o src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o $(foreach mod, $(HALS), $(HAL_ROOT)/Src/stm32$(CPU)xx_hal_$(mod).o) $(HAL_ROOT)/Src/stm32$(CPU)xx_hal.o $(foreach mod, $(USB_CORES), Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_$(mod).o) $(foreach mod, $(USB_CDC), Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_$(mod).o) vendor/libdw1000/src/libdw1000.o vendor/libdw1000/src/libdw1000Spi.o src/dwOps.o
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/2c/jkjg68hx2cv82sd2qjjmbr300000gn/T/vscode-ipc-9c5a9e84-f05d-4795-a59e-993fa138d62b.sock
+# makefile (from `Makefile', line 45)
+USB_CORES = core ctlreq ioreq
+# environment
+VSCODE_CWD = /
+# environment
+Apple_PubSub_Socket_Render = /private/tmp/com.apple.launchd.v3xaXmH3Oj/Render
+# environment
+PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+# makefile (from `Makefile', line 75)
+LD = $(PREFIX)gcc
+# makefile (from `Makefile', line 1)
+OPENOCD = openocd
+# environment
+VSCODE_LOG_STACK = false
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# makefile (from `Makefile', line 69)
+LDFLAGS = $(PROCESSOR) --specs=nano.specs --specs=nosys.specs -lm -lc -u _printf_float -Ttools/make/stm32f072.ld -Wl,-Map=bin/$(PROG).map,--cref,--gc-sections
+# default
+.FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
+# makefile (from `Makefile', line 46)
+USB_CDC = cdc
+# environment
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.WWZM78WSBH/Listeners
+# makefile (from `Makefile', line 78)
+SIZE = $(PREFIX)size
+# automatic
+%F = $(notdir $%)
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+PWD = /Users/mahyar/Documents/GitHub/lps-node-firmware
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# makefile (from `Makefile', line 5)
+PYTHON = python3
+# makefile (from `Makefile', line 9)
+BOOTLOAD = 0
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /Users/mahyar
+# default
+MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
+# environment
+VSCODE_CODE_CACHE_PATH = /Users/mahyar/Library/Application Support/Code/CachedData/30d9c6cd9483b2cc586687151bcbcd635f373630
+# environment
+LOGNAME = mahyar
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# makefile (from `Makefile', line 72)
+PREFIX = arm-none-eabi-
+# makefile (from `Makefile', line 61)
+LOAD_ADDRESS = 0x8000000
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+XPC_FLAGS = 0x0
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 2
+# makefile (from `Makefile', line 74)
+CC = $(PREFIX)gcc
+# makefile (from `Makefile', line 16)
+PROCESSOR = -mthumb -mcpu=cortex-m0 -DHSI48_VALUE="((uint32_t)48000000)" -DSTM32F072xB
+# default
+MAKE_VERSION := 3.81
+# environment
+USER = mahyar
+# makefile
+.DEFAULT_GOAL := all
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# makefile (from `Makefile', line 15)
+CPU = f0
+# default
+MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
+# default
+.VARIABLES := 
+# environment
+TMPDIR = /var/folders/2c/jkjg68hx2cv82sd2qjjmbr300000gn/T/
+# automatic
+*F = $(notdir $*)
+# environment
+VSCODE_IPC_HOOK = /Users/mahyar/Library/Application Support/Code/1.68.1-main.sock
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+MFLAGS = -Rrqp
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+XPC_SERVICE_NAME = com.microsoft.VSCode.5112
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# automatic
++F = $(notdir $+)
+# makefile (from `Makefile', line 17)
+OPENOCD_TARGET = target/stm32f0x.cfg
+# makefile (from `Makefile', line 2)
+OPENOCD_INTERFACE = interface/jlink.cfg
+# environment
+__CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
+# makefile (from `Makefile', line 3)
+OPENOCD_CMDS = -c "transport select swd"
+# default
+MAKEFILES := 
+# makefile (from `Makefile', line 41)
+HALS = i2c_ex gpio rcc cortex i2c pcd dma pcd_ex rcc_ex spi uart pwr
+# automatic
+<F = $(notdir $<)
+# makefile (from `Makefile', line 14)
+HAL_ROOT = hal/stm32f0xx
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# makefile (from `Makefile', line 77)
+OBJCOPY = $(PREFIX)objcopy
+# default
+SUFFIXES := 
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# environment
+MAKELEVEL := 0
+# makefile (from `Makefile', line 4)
+REV = B
+# environment
+LANG = C
+# environment
+VSCODE_PID = 14696
+# variable set hash-table stats:
+# Load=86/1024=8%, Rehash=0, Collisions=34/202=17%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 16777220, inode 2891345): 27 files, no impossibilities.
+
+# 27 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+%.bin: %.elf
+#  commands to execute (from `Makefile', line 109):
+	$(OBJCOPY) $^ -O binary $@
+	
+
+%.dfu: %.bin
+#  commands to execute (from `Makefile', line 112):
+	$(PYTHON) tools/make/dfu-convert.py -b $(LOAD_ADDRESS):$^ $@
+	
+
+# 2 implicit rules, 0 (0.0%) terminal.
+
+# Files
+
+# Not a target:
+src/uwb.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_i2c.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/usbcomm.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/stm32f0xx_it.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+erase:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 94):
+	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
+	-c "stm32f1x mass_erase 0" -c shutdown
+	
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_uart.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o:
+#  Implicit rule search has not been done.
+ 
+#  Modification time never checked.
+#  File has not been updated.
+
+all: check_submodules bin/lps-node-firmware.elf bin/lps-node-firmware.dfu
+#  Command-line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/3=0%
+
+# Not a target:
+src/usbd_desc.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/usb_device.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+openocd:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 98):
+	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets
+	
+
+# Not a target:
+bin/lps-node-firmware.dfu:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+bin/lps-node-firmware.elf: lib/freertos/src/list.o lib/freertos/src/queue.o lib/freertos/src/timers.o lib/freertos/src/tasks.o lib/freertos/src/port.o lib/freertos/src/event_groups.o src/f0/startup_stm32f072xb.o src/f0/system_stm32f0xx.o src/f0/stm32f0xx_it.o src/f0/stm32f0xx_hal_msp.o src/f0/gpio.o src/f0/i2c.o src/f0/spi.o src/f0/system.o src/f0/usart.o src/f0/usbd_conf.o src/eeprom.o src/bootmode.o src/main.o src/usb_device.o src/usbd_cdc_if.o src/usbd_desc.o src/lps25h.o src/led.o src/button.o src/cfg.o src/usbcomm.o src/test_support.o src/production_test.o src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o hal/stm32f0xx/Src/stm32f0xx_hal_i2c_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_gpio.o hal/stm32f0xx/Src/stm32f0xx_hal_rcc.o hal/stm32f0xx/Src/stm32f0xx_hal_cortex.o hal/stm32f0xx/Src/stm32f0xx_hal_i2c.o hal/stm32f0xx/Src/stm32f0xx_hal_pcd.o hal/stm32f0xx/Src/stm32f0xx_hal_dma.o hal/stm32f0xx/Src/stm32f0xx_hal_pcd_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_rcc_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_spi.o hal/stm32f0xx/Src/stm32f0xx_hal_uart.o hal/stm32f0xx/Src/stm32f0xx_hal_pwr.o hal/stm32f0xx/Src/stm32f0xx_hal.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.o vendor/libdw1000/src/libdw1000.o vendor/libdw1000/src/libdw1000Spi.o src/dwOps.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 83):
+	$(LD) -o $@ $^ $(LDFLAGS)
+	$(SIZE) $@
+	@echo BOOTLOADER Support: $(BOOTLOAD)
+	
+
+# Not a target:
+src/main.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/test_support.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/uwb_tdoa_anchor2.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/bootmode.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_pcd.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_i2c_ex.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/event_groups.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/usart.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/uwb_sniffer.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-08-03 17:19:28
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_pwr.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/uwb_twr_tag.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/button.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/led.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/queue.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_dma.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_pcd_ex.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/gpio.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+reset_and_dfu:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 104):
+	tools/make/reset-to-dfu.py
+	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
+	
+
+# Not a target:
+src/f0/usbd_conf.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/system_stm32f0xx.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+dfu:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 101):
+	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
+	
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_cortex.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_spi.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/port.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/eeprom.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/dwOps.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/uwb_tdoa_anchor3.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+vendor/libdw1000/src/libdw1000.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+ 
+# Not a target:
+src/lpp.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 88):
+	rm -f bin/lps-node-firmware.elf bin/lps-node-firmware.dfu bin/.map $(OBJS)
+	
+
+# Not a target:
+src/uwb_twr_anchor.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/lps25h.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_gpio.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+check_submodules:
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: `'
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := check_submodules
+# automatic
+# % := 
+# automatic
+# * := 
+# automatic
+# + := 
+# automatic
+# | := 
+# automatic
+# < := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=2/11=18%
+#  commands to execute (from `Makefile', line 115):
+	$(PYTHON) tools/make/check-for-submodules.py
+	
+
+# Not a target:
+src/f0/system.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+vendor/libdw1000/src/libdw1000Spi.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/timers.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/cfg.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_rcc.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/startup_stm32f072xb.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/i2c.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+flash:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 91):
+	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
+	-c "flash write_image erase bin/lps-node-firmware.elf" -c "verify_image bin/lps-node-firmware.elf" -c "reset run" -c shutdown
+	
+
+# Not a target:
+src/f0/stm32f0xx_hal_msp.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/tasks.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+lib/freertos/src/list.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/usbd_cdc_if.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/production_test.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+src/f0/spi.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+hal/stm32f0xx/Src/stm32f0xx_hal_rcc_ex.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# files hash-table stats:
+# Load=69/1024=7%, Rehash=0, Collisions=3/142=2%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 1
+# # of strcache buffers: 1
+# strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
+# strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
+
+# Finished Make data base on Mon Aug 29 12:18:09 2022
+
+ 

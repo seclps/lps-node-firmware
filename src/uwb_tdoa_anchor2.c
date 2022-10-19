@@ -58,6 +58,10 @@
 #include "cfg.h"
 #include "lpp.h"
 
+#include <stdlib.h>
+#include "md5.h"
+#include "hmac_md5.h"
+
 #define debug(...) printf(__VA_ARGS__)
 
 // Still using modulo 2 calculation for slots
@@ -141,6 +145,8 @@ typedef struct rangePacket_s {
 #define LPP_HEADER (sizeof(rangePacket_t))
 #define LPP_TYPE (sizeof(rangePacket_t)+1)
 #define LPP_PAYLOAD (sizeof(rangePacket_t)+2)
+
+uint32_t tesla_counter;
 
 /* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
 static uint32_t adjustTxRxTime(dwTime_t *time)
@@ -268,8 +274,20 @@ static void setupRx(dwDevice_t *dev)
   dwSetTxRxTime(dev, receiveTime);
   dwStartReceive(dev);
 }
+/*
+static struct conc_t {
+	float  pos[3];
+	char  key[3];
+} conc = {{0,0,0}, "key"};
+*/
+
+//static const char *const key = "key";
 
 // Set TX data in the radio TX buffer
+//static const char *const macKey = "123";
+//static md5_byte_t mac_digest[16];
+//static md5_byte_t * mockdigest = "12345678";
+
 static void setTxData(dwDevice_t *dev)
 {
   static packet_t txPacket;
@@ -299,6 +317,12 @@ static void setTxData(dwDevice_t *dev)
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
     memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
 
+      char* msg = "123456789012";
+      char* someKey = "key";
+      
+      md5_byte_t mac_digest[16];
+      hmac_md5(msg, 12, someKey, 3, mac_digest);
+
     lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }
 
@@ -306,6 +330,7 @@ static void setTxData(dwDevice_t *dev)
 
   for (int i=0; i<NSLOTS; i++) {
     rangePacket->pid[i] = ctx.packetIds[i];
+
     memcpy(rangePacket->timestamps[i], &ctx.rxTimestamps[i], TS_TX_SIZE);
   }
   memcpy(rangePacket->timestamps[ctx.anchorId], &ctx.txTimestamps[ctx.anchorId], TS_TX_SIZE);
@@ -349,6 +374,17 @@ static void updateSlot()
   }
 }
 
+static const int period = 10 * 1000; // 10 sec
+
+static int roundToNearestMultiple(int n) {
+    // Smaller multiple
+    int a = (n / period) * period;
+    // Larger multiple
+    int b = a + period;
+    // Return of closest of two
+    return (n - a > b - n) ? b : a;
+}
+
 // slotStep is called once per timeslot as long as TDMA is synched and setup
 // the next timeslot action
 static uint32_t slotStep(dwDevice_t *dev, uwbEvent_t event)
@@ -379,6 +415,22 @@ static uint32_t slotStep(dwDevice_t *dev, uwbEvent_t event)
       if (event == eventPacketReceived || event == eventReceiveTimeout) {
         if (event == eventPacketReceived) {
           debug("Received service packet!\r\n");
+            
+          static packet_t servicePacket;
+          
+          int dataLength = dwGetDataLength(dev);
+          servicePacket.payload[0] = 0;
+          dwGetData(dev, (uint8_t*)&servicePacket, dataLength);
+            
+          if (servicePacket.payload[1] == LPP_SHORT_INIT_TESLA) {
+              uint32_t val = servicePacket.payload[2];
+              debug("val %lu \r\n", val);
+
+              tesla_counter = val ? roundToNearestMultiple(tesla_counter) : 0;
+              debug("resynced tesla time!");
+          }
+          //debug("service packet p[1] = %d \r\n", servicePacket.payload[1]);
+            
           handleServicePacket(dev);
           // The service packet handling time desynchronized us, lets resynch
           ctx.state = syncTdmaState;
@@ -403,6 +455,7 @@ static void tdoa2Init(uwbConfig_t * config, dwDevice_t *dev)
   ctx.nextSlot = 0;
   memset(ctx.txTimestamps, 0, sizeof(ctx.txTimestamps));
   memset(ctx.rxTimestamps, 0, sizeof(ctx.rxTimestamps));
+
 }
 
 // Called for each DW radio event

@@ -37,9 +37,11 @@ void lppHandleShortPacket(char *data, size_t length);
 #define LPP_SHORT_MODE 0x03
 #define LPP_SHORT_UWB 0x04
 #define LPP_SHORT_UWB_MODE 0x05
+#define LPP_SHORT_INIT_TESLA 0x06
 
 struct lppShortAnchorPosition_s {
   float position[3];
+  uint8_t hash[8];
 } __attribute__((packed));
 
 #define LPP_SHORT_REBOOT_TO_BOOTLOADER 0x00
@@ -47,6 +49,10 @@ struct lppShortAnchorPosition_s {
 
 struct lppShortReboot_s {
   uint8_t bootMode;
+} __attribute__((packed));
+
+struct lppShortInitTESLA_s {
+  uint32_t timestamp;
 } __attribute__((packed));
 
 #define LPP_SHORT_MODE_TWR 0x01
