@@ -10,7 +10,7 @@
             "device": "STM32F072",
             "svdFile": "STM32F072x.svd",
             "servertype": "openocd",
-            "configFiles": ["interface/jlink.cfg", "target/stm32f0x.cfg"],
+            "configFiles": ["./jlink.cfg", "target/stm32f0x.cfg"],
             "runToMain": true,
             "showDevDebugOutput": "raw",
             "preLaunchCommands": [

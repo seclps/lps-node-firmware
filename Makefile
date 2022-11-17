@@ -1,5 +1,5 @@
 OPENOCD           ?= openocd
-OPENOCD_INTERFACE ?= interface/jlink.cfg
+OPENOCD_INTERFACE ?= ./jlink_building.cfg
 OPENOCD_CMDS      ?= -c "transport select swd"
 REV               ?= B
 PYTHON           ?= python3

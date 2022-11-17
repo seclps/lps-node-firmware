@@ -36,7 +36,7 @@
 #include <task.h>
 
 TaskHandle_t teslaTaskHandle = 0;
-uint32_t tesla_counter;
+uint32_t tesla_counter = 0;
 
 // Implemented UWB algoritm. The dummy one is at the end of this file.
 static uwbAlgorithm_t dummyAlgorithm;

@@ -146,8 +146,6 @@ typedef struct rangePacket_s {
 #define LPP_TYPE (sizeof(rangePacket_t)+1)
 #define LPP_PAYLOAD (sizeof(rangePacket_t)+2)
 
-uint32_t tesla_counter;
-
 /* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
 static uint32_t adjustTxRxTime(dwTime_t *time)
 {
@@ -317,12 +315,14 @@ static void setTxData(dwDevice_t *dev)
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
     memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
 
-      char* msg = "123456789012";
-      char* someKey = "key";
-      
-      md5_byte_t mac_digest[16];
-      hmac_md5(msg, 12, someKey, 3, mac_digest);
+    char *msg = "123456789012";
+    char *key = "key";
 
+      md5_byte_t digest[16];
+      hmac_md5((unsigned char *)msg, 12, (unsigned char *)key, 3, digest); // msg is 12 bytes, key is 3 bytes, write result to mac_digest
+
+      memcpy(pos->hash, "12345678", 8);
+      
     lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }
 
