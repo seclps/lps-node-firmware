@@ -56,6 +56,7 @@
 const uint8_t *uid = (uint8_t*)MCU_ID_ADDRESS;
 
 static void restConfig();
+static void changeToBadPosition();
 static void changeAddress(uint8_t addr);
 static void handleSerialInput(char ch);
 static void handleButton(void);
@@ -228,6 +229,7 @@ static void handleMenuMain(char ch, MenuState* menuState) {
   switch (ch) {
     case '0':
     case '1':
+        changeToBadPosition();
     case '2':
     case '3':
     case '4':
@@ -459,6 +461,15 @@ static void changeAddress(uint8_t addr) {
   } else {
     printf("Device address: Not found!\r\n");
   }
+}
+    
+static void changeToBadPosition() {
+    uwbConfig_t *uwbConfig = uwbGetConfig();
+    uwbConfig->position[0] = 10;
+    uwbConfig->position[1] = 10;
+    uwbConfig->position[2] = 10;
+    uwbConfig->positionEnabled = true;
+    printf("changed to bad position!");
 }
 
 static void changeMode(unsigned int newMode) {

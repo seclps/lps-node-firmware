@@ -53,7 +53,7 @@ void lppHandleShortPacket(char *data, size_t length)
     {
       struct lppShortAnchorPosition_s* newpos = (struct lppShortAnchorPosition_s*)&data[1];
 
-      if (length != 3*sizeof(float) + 1 + 8) {
+      if (length != 3*sizeof(float) + 1) { // TODO: should MAC size be handled here?
         debug("LPP: Wrong set-anchor position length\r\n");
         break;
       }

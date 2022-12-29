@@ -61,6 +61,7 @@
 #include <stdlib.h>
 #include "md5.h"
 #include "hmac_md5.h"
+//#include "queue.h"
 
 #define debug(...) printf(__VA_ARGS__)
 
@@ -256,6 +257,15 @@ static void handleServicePacket(dwDevice_t *dev)
   }
 }
 
+/*
+#define QUEUE_LENGTH 10
+#define ITEM_SIZE sizeof(uint8_t)
+
+static QueueHandle_t queueHandleTESLA;
+static StaticQueue_t queueTESLA;
+uint8_t buf[ QUEUE_LENGTH * ITEM_SIZE ];
+*/
+
 // Setup the radio to receive a packet in the next timeslot
 static void setupRx(dwDevice_t *dev)
 {
@@ -271,20 +281,23 @@ static void setupRx(dwDevice_t *dev)
   dwSetDefaults(dev);
   dwSetTxRxTime(dev, receiveTime);
   dwStartReceive(dev);
+  //queueHandleTESLA = xQueueCreateStatic(QUEUE_LENGTH, ITEM_SIZE, buf, &queueTESLA);
+
 }
-/*
-static struct conc_t {
-	float  pos[3];
-	char  key[3];
-} conc = {{0,0,0}, "key"};
-*/
 
-//static const char *const key = "key";
-
-// Set TX data in the radio TX buffer
-//static const char *const macKey = "123";
-//static md5_byte_t mac_digest[16];
-//static md5_byte_t * mockdigest = "12345678";
+static const unsigned int hashebytes[8][16] = {
+{0x1f,0x2e,0x2b,0x19,0xf2,0xb9,0xdb,0x68,0x5e,0xf0,0x5b,0x65,0x38,0x5a,0x40,0x62},// Anchor('0',-1,-1,0)
+{0xaf,0xc1,0xd3,0xc0,0xf6,0x82,0xb3,0xe6,0x9b,0xe9,0xff,0xfe,0x71,0x39,0xe0,0x68},// Anchor('1',-1,+1,1)
+{0xe4,0x8f,0xd3,0xe1,0xc9,0x4b,0xec,0xc9,0x27,0x61,0x82,0x7a,0x68,0x00,0x3c,0xdc},// Anchor('2',+1,+1,0)
+{0xa9,0x2c,0x1a,0xef,0x23,0xfb,0x38,0xdf,0xeb,0x27,0x78,0xbc,0xe8,0x0f,0x7b,0xf8},// Anchor('3',+1,-1,1)
+{0xcb,0x4d,0x44,0x6a,0x2e,0xbf,0xf9,0x49,0x5e,0x60,0x24,0x7b,0x83,0x5f,0xa1,0xf2},// Anchor('4',-1,-1,1)
+{0x06,0xe3,0xf9,0xff,0x1f,0x8d,0xb3,0x29,0x87,0x8c,0x17,0x15,0x29,0xd5,0x94,0x8a},// Anchor('5',-1,+1,0)
+{0xc9,0xcc,0xdc,0xfe,0xa6,0x75,0x0d,0xda,0x1c,0x5e,0x82,0x0f,0x4e,0xca,0xcb,0x5e},// Anchor('6',+1,+1,1)
+{0x39,0xb5,0xd4,0xeb,0x7f,0xed,0x44,0xdd,0x43,0x70,0x21,0x2c,0xff,0x27,0x43,0x17} // Anchor('7',+1,-1,0)
+};
+static uint64_t txcounter = 0;
+#define TESLA_TOTAL_DURATION 10
+md5_byte_t keychain[TESLA_TOTAL_DURATION] = {'\0'}; // 50 lpp/s over 10 minutes of keysize 8
 
 static void setTxData(dwDevice_t *dev)
 {
@@ -314,15 +327,22 @@ static void setTxData(dwDevice_t *dev)
 
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
     memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
-
-    char *msg = "123456789012";
-    char *key = "key";
-
-      md5_byte_t digest[16];
-      hmac_md5((unsigned char *)msg, 12, (unsigned char *)key, 3, digest); // msg is 12 bytes, key is 3 bytes, write result to mac_digest
-
-      memcpy(pos->hash, "12345678", 8);
       
+    txcounter++;
+    static md5_byte_t key[8] = {'0','0','0','0','0','0','0','0'};
+    key[0] = keychain[(TESLA_TOTAL_DURATION-2)-(txcounter%(TESLA_TOTAL_DURATION-1))];
+
+     if (key[0] == 0x02) {
+      txcounter++;
+     }
+    memcpy(pos->phash, hashebytes[ctx.anchorId], 8); // hashebytes[3] is anchor 4
+      
+    md5_byte_t digest[16];
+    hmac_md5((md5_byte_t *)pos->position, 12+8, key, 8, digest); // msg is 12 bytes, its hash is 8 bytes, key is 3 bytes, write result to mac_digest
+      
+    memcpy(pos->hash, digest, 8);
+    memcpy(pos->key, key, 8);
+
     lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }
 
@@ -446,6 +466,20 @@ static uint32_t slotStep(dwDevice_t *dev, uwbEvent_t event)
   return MAX_TIMEOUT;
 }
 
+
+static void genMD5(md5_byte_t *input, uint8_t len, md5_byte_t *output) {
+    md5_state_t hash_state;
+    md5_init(&hash_state);
+    md5_append(&hash_state, input, len);
+    md5_finish(&hash_state, output);
+}
+
+//#define EXPECTED_NUMBEROF_PACKETS_PER_SECOND 1
+//#define KEYCHAIN_SIZE EXPECTED_NUMBEROF_PACKETS_PER_SECOND * TESLA_TOTAL_DURATION
+
+//static md5_byte_t keychain[KEYCHAIN_SIZE]; // 50 lpp/s over 10 minutes of keysize 8
+
+
 // Initialize/reset the agorithm
 static void tdoa2Init(uwbConfig_t * config, dwDevice_t *dev)
 {
@@ -455,7 +489,19 @@ static void tdoa2Init(uwbConfig_t * config, dwDevice_t *dev)
   ctx.nextSlot = 0;
   memset(ctx.txTimestamps, 0, sizeof(ctx.txTimestamps));
   memset(ctx.rxTimestamps, 0, sizeof(ctx.rxTimestamps));
-
+  
+ 
+  const char ids[8] = {'0','1','2','3','4','5','6','7'};
+  const int len = TESLA_TOTAL_DURATION;
+  for (int index = 0; index < 8;index++) {
+      keychain[0]=ids[ctx.anchorId];
+      for (int i = 1; i < len; i++) {
+          md5_byte_t output[16];
+          genMD5(&keychain[i-1], 1, output);
+          keychain[i] = output[0];
+      }
+  }
+    
 }
 
 // Called for each DW radio event

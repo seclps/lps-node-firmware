@@ -16,5 +16,6 @@
         "type_traits": "c",
         "variant": "c",
         "vector": "c"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": true
 }
