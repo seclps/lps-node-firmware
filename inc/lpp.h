@@ -44,6 +44,11 @@ struct lppShortAnchorPosition_s {
   uint8_t phash[8];
   uint8_t hash[8];
   uint8_t key[8];
+    // for logging only
+  uint32_t tesla_counter;
+  uint32_t currentInterval;
+  uint8_t currentKeyByte;
+
 } __attribute__((packed));
 
 #define LPP_SHORT_REBOOT_TO_BOOTLOADER 0x00

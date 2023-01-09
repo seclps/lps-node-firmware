@@ -36,8 +36,6 @@
 #include <task.h>
 
 TaskHandle_t teslaTaskHandle = 0;
-uint32_t tesla_counter = 0;
-
 // Implemented UWB algoritm. The dummy one is at the end of this file.
 static uwbAlgorithm_t dummyAlgorithm;
 extern uwbAlgorithm_t uwbTwrAnchorAlgorithm;
@@ -94,17 +92,16 @@ static void rxfailedcallback(dwDevice_t *dev) {
 
 void teslaTask (void *p) {
     while (1) {
-        vTaskDelay(1);
-        tesla_counter++;
-		if (tesla_counter % 1000 == 0)
-        	printf("tesla time=%lds \r\n ", tesla_counter/1000);
+        vTaskDelay(100);
+        tesla_counter+=100;
+		//if (tesla_counter % 1000 == 0)
+     //   	printf("tesla time=%lds \r\n ", tesla_counter/1000);
     }
     vTaskDelete(teslaTaskHandle);
 }
 
 void uwbInit()
 {
-   tesla_counter = 0;
   // Initializing the low level radio handling
   static StaticSemaphore_t irqSemaphoreBuffer;
   irqSemaphore = xSemaphoreCreateBinaryStatic(&irqSemaphoreBuffer);

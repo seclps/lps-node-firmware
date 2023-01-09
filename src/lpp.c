@@ -142,7 +142,7 @@ void lppHandleShortPacket(char *data, size_t length)
       struct lppShortInitTESLA_s* teslaInfo = (struct lppShortInitTESLA_s*)&data[1];
       
         debug("TIME RESET with %ld", teslaInfo->timestamp);
-        tesla_counter = teslaInfo->timestamp;
+        //tesla_counter = teslaInfo->timestamp;
       
       break;
     }

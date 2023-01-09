@@ -94,6 +94,9 @@
 
 #define TS_TX_SIZE 4
 
+uint32_t tesla_counter = 0;
+bool tesla_init = false;
+
 // Useful constants
 static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
 
@@ -285,7 +288,7 @@ static void setupRx(dwDevice_t *dev)
 
 }
 
-static const unsigned int hashebytes[8][16] = {
+static const uint8_t hashebytes[8][16] = {
 {0x1f,0x2e,0x2b,0x19,0xf2,0xb9,0xdb,0x68,0x5e,0xf0,0x5b,0x65,0x38,0x5a,0x40,0x62},// Anchor('0',-1,-1,0)
 {0xaf,0xc1,0xd3,0xc0,0xf6,0x82,0xb3,0xe6,0x9b,0xe9,0xff,0xfe,0x71,0x39,0xe0,0x68},// Anchor('1',-1,+1,1)
 {0xe4,0x8f,0xd3,0xe1,0xc9,0x4b,0xec,0xc9,0x27,0x61,0x82,0x7a,0x68,0x00,0x3c,0xdc},// Anchor('2',+1,+1,0)
@@ -298,6 +301,7 @@ static const unsigned int hashebytes[8][16] = {
 static uint64_t txcounter = 0;
 #define TESLA_TOTAL_DURATION 10
 md5_byte_t keychain[TESLA_TOTAL_DURATION] = {'\0'}; // 50 lpp/s over 10 minutes of keysize 8
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
 static void setTxData(dwDevice_t *dev)
 {
@@ -305,6 +309,10 @@ static void setTxData(dwDevice_t *dev)
   static bool firstEntry = true;
   static int lppLength = 0;
 
+  // if (!tesla_init) {
+  //   return;
+  // }
+  
   if (firstEntry) {
     MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);
 
@@ -328,14 +336,20 @@ static void setTxData(dwDevice_t *dev)
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
     memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
       
+      pos->tesla_counter = tesla_counter;
     txcounter++;
-    static md5_byte_t key[8] = {'0','0','0','0','0','0','0','0'};
-    key[0] = keychain[(TESLA_TOTAL_DURATION-2)-(txcounter%(TESLA_TOTAL_DURATION-1))];
+      
+    uint32_t interval = MAX((uint32_t)(tesla_counter/1000),1);
 
-     if (key[0] == 0x02) {
-      txcounter++;
-     }
-    memcpy(pos->phash, hashebytes[ctx.anchorId], 8); // hashebytes[3] is anchor 4
+      pos->currentInterval = interval;
+    static md5_byte_t key[8] = {'0','0','0','0','0','0','0','0'};
+    key[0] = keychain[(TESLA_TOTAL_DURATION-2)-(interval%(TESLA_TOTAL_DURATION-1))];
+      pos->currentKeyByte = key[0];
+
+    if (key[0] == 0x02) {
+     txcounter++;
+    }
+    memcpy(pos->phash, hashebytes[ctx.anchorId], 8); 
       
     md5_byte_t digest[16];
     hmac_md5((md5_byte_t *)pos->position, 12+8, key, 8, digest); // msg is 12 bytes, its hash is 8 bytes, key is 3 bytes, write result to mac_digest
@@ -443,10 +457,17 @@ static uint32_t slotStep(dwDevice_t *dev, uwbEvent_t event)
           dwGetData(dev, (uint8_t*)&servicePacket, dataLength);
             
           if (servicePacket.payload[1] == LPP_SHORT_INIT_TESLA) {
-              uint32_t val = servicePacket.payload[2];
+              uint32_t val;
+              memcpy(&val,&servicePacket.payload[2],sizeof(uint32_t));
               debug("val %lu \r\n", val);
-
-              tesla_counter = val ? roundToNearestMultiple(tesla_counter) : 0;
+              tesla_counter = val;
+              if (tesla_init == false) {
+                //tesla_counter = 0;
+                tesla_init = true;
+              } else {
+                 //val ? roundToNearestMultiple(tesla_counter) : 0;
+              }
+              
               debug("resynced tesla time!");
           }
           //debug("service packet p[1] = %d \r\n", servicePacket.payload[1]);
@@ -483,6 +504,7 @@ static void genMD5(md5_byte_t *input, uint8_t len, md5_byte_t *output) {
 // Initialize/reset the agorithm
 static void tdoa2Init(uwbConfig_t * config, dwDevice_t *dev)
 {
+  tesla_init = false;
   ctx.anchorId = config->address[0];
   ctx.state = syncTdmaState;
   ctx.slot = NSLOTS-1;
