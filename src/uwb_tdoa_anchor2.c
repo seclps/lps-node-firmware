@@ -346,9 +346,9 @@ static void setTxData(dwDevice_t *dev)
     key[0] = keychain[(TESLA_TOTAL_DURATION-2)-(interval%(TESLA_TOTAL_DURATION-1))];
       pos->currentKeyByte = key[0];
 
-    if (key[0] == 0x02) {
-     txcounter++;
-    }
+    //if (key[0] == 0x02) {
+    // txcounter++;
+    //}
     memcpy(pos->phash, hashebytes[ctx.anchorId], 8); 
       
     md5_byte_t digest[16];
