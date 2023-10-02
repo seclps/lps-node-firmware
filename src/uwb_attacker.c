@@ -38,11 +38,10 @@
 
 #include "dwOps.h"
 #include "mac.h"
+#include <math.h>
 
 // System configuration
 static struct uwbConfig_s config;
-
-static packet_t txPacket;
 
 #define debug(...) // printf(__VA_ARGS__)
 
@@ -51,58 +50,83 @@ static packet_t txPacket;
 #define LPP_PAYLOAD 2
 #define ANCHORS_COUNT 8
 
-static uint16_t counter = 0;
+static uint32_t counter = 0;
 
 static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
 
+static float A0X;
+static float A0Z;
+#define LPS_STEP 0.1f
+#define TO_MOVE_UNIT 1.0f - LPS_STEP
+#define TO_Z_UNIT 2.0f
+
 static float positions[ANCHORS_COUNT][3] = {
-    {-2.1229, -3.6221, 0.35859},
-    {-2.0413, 4.04489, 3.02399},
-    {2.63910, 3.41729, 0.36259},
-    {2.57909, -3.4709, 3.10229},
-    {-1.9666, -3.6052, 2.94670},
-    {-2.2823, 3.40969, 0.36570},
-    {2.60570, 3.92840, 2.89000},
-    {2.60560, -2.9679, 0.36320}
+    {-2.1229f, -3.6221f, 0.3585f},
+    {-2.0413f,  4.0448f, 3.0239f},
+    { 2.6391f,  3.4172f, 0.3625f},
+    { 2.5790f, -3.4709f, 3.1022f},
+    {-1.9666f, -3.6052f, 2.9467f},
+    {-2.2823f,  3.4096f, 0.3657f},
+    { 2.6057f,  3.9284f, 2.8900f},
+    { 2.6056f, -2.9679f, 0.3632f}
 };
 
-static void sendFakeLPPs(dwDevice_t *dev) {
+static void sendLPP(dwDevice_t *dev, uint8_t anchorID) {
     
-    uwbConfig_t *uwbConfig = uwbGetConfig();
+    static packet_t txPacket;
+    dwIdle(dev);
+    
+    MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);
+    txPacket.pan = 0xbccf;
+    
+    
+    memcpy(txPacket.sourceAddress, base_address, 8);
+    txPacket.sourceAddress[0] = 0xff;
+    memcpy(txPacket.destAddress, base_address, 8);
+    txPacket.destAddress[0] = anchorID;
+    
+    txPacket.payload[LPP_HEADER] = SHORT_LPP;
+    txPacket.payload[LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
+    
+    
+    struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
+    memcpy(pos->position, positions[anchorID], 3*sizeof(float));
+    int payloadLength = 2 + sizeof(struct lppShortAnchorPosition_s);
+    
+    dwNewTransmit(dev);
+    dwSetDefaults(dev);
+    dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+payloadLength);
+    dwStartTransmit(dev);
 
-    if (uwbConfig->positionEnabled && counter < ANCHORS_COUNT * 100) {
-        
-        ledBlink(ledRanging, true);
-        
-        uint8_t destId = counter % ANCHORS_COUNT;
-        
-        memcpy(txPacket.sourceAddress, base_address, 8);
-        txPacket.sourceAddress[0] = 0xff;
-        memcpy(txPacket.destAddress, base_address, 8);
-        txPacket.destAddress[0] = destId;
-        
-        txPacket.payload[LPP_HEADER] = SHORT_LPP;
-        txPacket.payload[LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
-        
-        if (counter % 100 == 0) {
-            for (int i = 0; i<ANCHORS_COUNT; i++) {
-                positions[i][0] += 0.01;
-                positions[i][1] += 0.01;
+}
+
+static void sendFakeLPPs(dwDevice_t *dev) {
+    float dist = fabsf(A0X - positions[0][0]);
+    uint8_t c = counter++ % 1000;
+    if (dist < TO_MOVE_UNIT) {
+        if (c == 0) {
+            for (int i = 0; i < ANCHORS_COUNT; i++) {
+                positions[i][0] -= 0.1;
+                positions[i][1] -= 0.1;
             }
         }
-        
-        struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
-        memcpy(pos->position, positions[destId], 3*sizeof(float));
-        int payloadLength = 2 + sizeof(struct lppShortAnchorPosition_s);
-        
-        dwNewTransmit(dev);
-        dwSetDefaults(dev);
-        dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+payloadLength);
-        
-        dwStartTransmit(dev);
-        
-        counter++;
-
+        if (c < ANCHORS_COUNT) {
+            sendLPP(dev, c);
+            ledBlink(ledRanging, true);
+        }
+    } else {
+        float zDist = fabsf(A0Z - positions[0][2]);
+        if (zDist < TO_Z_UNIT) {
+            if (c == 0) {
+                for (int i = 0; i < ANCHORS_COUNT; i++) {
+                    positions[i][2] += 0.1;
+                }
+            }
+            if (c < ANCHORS_COUNT) {
+                sendLPP(dev, c);
+                ledBlink(ledSync, true);
+            }
+        }
     }
 
 }
@@ -110,26 +134,27 @@ static void sendFakeLPPs(dwDevice_t *dev) {
 
 static void attackerAnchorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
-  // Set the LED for anchor mode
-  ledOn(ledMode);
+    // Set the LED for anchor mode
+    ledOn(ledMode);
+    
+    config = *newconfig;
+    
+    // Initialize the packet in the TX buffer
+    
+    A0X = positions[0][0];
+    A0Z = positions[0][2];
 
-  config = *newconfig;
-
-  // Initialize the packet in the TX buffer
-  MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);
-  txPacket.pan = 0xbccf;
-
-  // onEvent is going to be called with eventTimeout which will start receiving
+    // onEvent is going to be called with eventTimeout which will start receiving
 }
 
 static uint32_t attackerAnchorOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
-  sendFakeLPPs(dev);
-  return 10; // every 1ms
+    sendFakeLPPs(dev);
+    return 5; // every 1s
 }
 
 
 uwbAlgorithm_t uwbAttackerAlgorithm = {
-  .init = attackerAnchorInit,
-  .onEvent = attackerAnchorOnEvent,
+    .init = attackerAnchorInit,
+    .onEvent = attackerAnchorOnEvent,
 };

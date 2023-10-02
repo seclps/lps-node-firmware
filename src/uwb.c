@@ -123,6 +123,7 @@ void uwbInit()
   } else {
     algorithm = &dummyAlgorithm;
   }
+algorithm = &uwbAttackerAlgorithm;
 
   config.positionEnabled = cfgReadFP32list(cfgAnchorPos, config.position, 3);
 

@@ -1,6 +1,6 @@
 OPENOCD           ?= openocd
-OPENOCD_INTERFACE ?= interface/stlink-v2.cfg
-OPENOCD_CMDS      ?=
+OPENOCD_INTERFACE ?= ./jlink_building.cfg
+OPENOCD_CMDS      ?= -c "transport select swd"
 REV               ?= B
 PYTHON           ?= python3
 # CFLAGS          += -fdiagnostics-color=auto
@@ -14,7 +14,7 @@ else ifeq ($(strip $(REV)),B)
 HAL_ROOT=hal/stm32f0xx
 CPU=f0
 PROCESSOR=-mthumb -mcpu=cortex-m0 -DHSI48_VALUE="((uint32_t)48000000)" -DSTM32F072xB
-OPENOCD_TARGET    ?= target/stm32f0x_stlink.cfg
+OPENOCD_TARGET    ?= target/stm32f0x.cfg
 else
 $(error Rev.$(REV) unknown)
 endif
@@ -35,8 +35,9 @@ HALS+=i2c_ex
 OBJS+=src/main.o
 OBJS+=src/usb_device.o src/usbd_cdc_if.o src/usbd_desc.o src/lps25h.o src/led.o src/button.o
 OBJS+=src/cfg.o src/usbcomm.o src/test_support.o src/production_test.o
-OBJS+=src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o src/uwb_attacker.o
-OBJS+=src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o
+OBJS+=src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o
+OBJS+=src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o src/uwb_attacker.o
+#OBJS+=src/md5.o src/hmac_md5.o
 
 HALS+=gpio rcc cortex i2c pcd dma pcd_ex rcc_ex spi uart pwr
 OBJS+=$(foreach mod, $(HALS), $(HAL_ROOT)/Src/stm32$(CPU)xx_hal_$(mod).o)
@@ -52,7 +53,8 @@ INCLUDES+=-Ivendor/libdw1000/inc
 OBJS+=vendor/libdw1000/src/libdw1000.o vendor/libdw1000/src/libdw1000Spi.o
 
 OBJS+=src/dwOps.o
-
+#O3
+#O0
 CFLAGS+=$(PROCESSOR) $(INCLUDES) -O3 -g3 -Wall -Wno-pointer-sign -std=gnu11
 LDFLAGS+=$(PROCESSOR) --specs=nano.specs --specs=nosys.specs -lm -lc -u _printf_float
 
@@ -90,6 +92,7 @@ clean:
 flash:
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
 	           -c "flash write_image erase bin/lps-node-firmware.elf" -c "verify_image bin/lps-node-firmware.elf" -c "reset run" -c shutdown
+
 erase:
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
 	           -c "stm32f1x mass_erase 0" -c shutdown
@@ -99,6 +102,9 @@ openocd:
 
 dfu:
 	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
+
+factory:
+	dfu-util -d 0483:df11 -a 0 -D lps-node-firmware-2022.09.dfu -s :leave
 
 reset_and_dfu:
 	tools/make/reset-to-dfu.py
