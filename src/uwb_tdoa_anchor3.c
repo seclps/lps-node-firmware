@@ -114,6 +114,23 @@ The implementation must handle
 
 #define DISTANCE_VALIDITY_PERIOD M2T(2 * 1000);
 
+#define TIME_SCALEDOWN_FACTOR 1e3
+#define SCALEDDOWN_UINT32_MAX (UINT32_MAX/TIME_SCALEDOWN_FACTOR)
+#define GET_STD_TIME(time, wrapovers) ((time)/TIME_SCALEDOWN_FACTOR + (wrapovers)*SCALEDDOWN_UINT32_MAX)
+#define SECS_PER_WRAP 17.2074010256
+#define STD_TIME_TO_SEC(time) (((time)/SCALEDDOWN_UINT32_MAX)*SECS_PER_WRAP)
+
+
+// 1099511627775
+// 4294967295
+// 17207401025600
+//17140184611400
+//#define FULL_WRAPOVER_TIME 1/128/499.2e6*UINT40_MAX
+// == 1/128/499.2e6*1099511627775=17.207401025625376 in seconds
+// 17207401025625 ps
+// 17.140140736512 s
+// 67.2162381824 ms
+
 // Useful constants
 static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
 
@@ -139,7 +156,11 @@ static struct ctx_s {
   // Information about latest transmitted packet
   uint8_t seqNr;
   uint32_t txTime; // In UWB clock ticks
-
+  uint32_t txTimeHi32; // In UWB clock ticks
+  // Global time, set to local if master, ow set to header.globalTime
+  int32_t gOffset;
+  float lastUpdatedTime;
+  
   // Next transmit time in system clock ticks
   uint32_t nextTxTick;
   int averageTxDelay; // ms
@@ -168,6 +189,7 @@ typedef struct {
   uint8_t seq;
   uint32_t txTimeStamp;
   uint8_t remoteCount;
+  uint32_t globalTime;
 } __attribute__((packed)) rangePacketHeader3_t;
 
 typedef struct {
@@ -193,6 +215,14 @@ typedef struct {
 #define LPP_TYPE (LPP_HEADER + 1)
 #define LPP_PAYLOAD (LPP_HEADER + 2)
 
+
+static uint32_t _lastRX = 0;
+static uint8_t _rxWrapovers = 0;
+static uint8_t _txWrapOvers = 0;
+static uint32_t _lastTX = 0;
+static uint16_t txCalls = 0;
+static uint16_t rxCalls = 0;
+static uint16_t lppCalls = 0;
 
 static anchorContext_t* getContext(uint8_t anchorId) {
   uint8_t slot = ctx.anchorCtxLookup[anchorId];
@@ -453,7 +483,7 @@ static bool updateClockCorrection(anchorContext_t* anchorCtx, double clockCorrec
   return sampleIsAccepted;
 }
 
-static void handleRangePacket(const uint32_t rxTime, const packet_t* rxPacket)
+static void handleRangePacket(const uint32_t localTime, uint32_t rxTime, const packet_t* rxPacket)
 {
   const uint8_t remoteAnchorId = rxPacket->sourceAddress[0];
   ctx.anchorRxCount[remoteAnchorId]++;
@@ -462,10 +492,16 @@ static void handleRangePacket(const uint32_t rxTime, const packet_t* rxPacket)
     const rangePacket3_t* rangePacket = (rangePacket3_t *)rxPacket->payload;
 
     uint32_t remoteTx = rangePacket->header.txTimeStamp;
+    uint32_t incomingGlobalTime = rangePacket->header.globalTime;
     uint8_t remoteTxSeqNr = rangePacket->header.seq;
 
     double clockCorrection = calculateClockCorrection(anchorCtx, remoteTxSeqNr, remoteTx, rxTime);
     if (updateClockCorrection(anchorCtx, clockCorrection)) {
+      if (incomingGlobalTime != 0 && anchorCtx->id >= 8) { // make sure it's master or someone who's already talked to master
+        ctx.gOffset = incomingGlobalTime - localTime;
+        ctx.lastUpdatedTime = STD_TIME_TO_SEC(localTime * clockCorrection + ctx.gOffset);
+      }
+        
       anchorCtx->isDataGoodForTransmission = true;
 
       uint32_t remoteRx = 0;
@@ -498,6 +534,13 @@ static void handleRxPacket(dwDevice_t *dev)
   dwGetRawReceiveTimestamp(dev, &rxTime);
   dwCorrectTimestamp(dev, &rxTime);
 
+  _rxWrapovers = _lastRX > rxTime.high32 ? _rxWrapovers + 1 : _rxWrapovers;
+
+  _lastRX = rxTime.high32;
+
+  const uint32_t localTime = GET_STD_TIME(_lastRX, _rxWrapovers);
+
+  rxCalls++;
   int dataLength = dwGetDataLength(dev);
   rxPacket.payload[0] = 0;
   dwGetData(dev, (uint8_t*)&rxPacket, dataLength);
@@ -508,7 +551,7 @@ static void handleRxPacket(dwDevice_t *dev)
 
   switch(rxPacket.payload[0]) {
   case PACKET_TYPE_TDOA3:
-    handleRangePacket(rxTime.low32, &rxPacket);
+    handleRangePacket(localTime, rxTime.low32, &rxPacket);
     break;
   case SHORT_LPP:
     if (rxPacket.destAddress[0] == ctx.anchorId) {
@@ -533,7 +576,18 @@ static int populateTxData(rangePacket3_t *rangePacket)
   // rangePacket->header.type already populated
   rangePacket->header.seq = ctx.seqNr;
   rangePacket->header.txTimeStamp = ctx.txTime;
-
+  _txWrapOvers = _lastTX > ctx.txTimeHi32 ? _txWrapOvers + 1 : _txWrapOvers;
+  _lastTX = ctx.txTimeHi32;
+  uint32_t localTime = GET_STD_TIME(_lastTX, _txWrapOvers);
+  if (ctx.anchorId == 8) {
+      rangePacket->header.globalTime = localTime;
+  } else {
+      if (ctx.gOffset == 0) {
+        rangePacket->header.globalTime = 0; // has not talked to master yet
+      } else {
+        rangePacket->header.globalTime = localTime + ctx.gOffset; // cc? handled by rx?
+      }
+  }
   uint8_t remoteAnchorCount = 0;
   uint8_t* anchorDataPtr = &rangePacket->remoteAnchorData;
   for (uint8_t i = 0; i < ctx.remoteTxIdCount; i++) {
@@ -589,6 +643,7 @@ static void setTxData(dwDevice_t *dev)
 
   // LPP anchor position is currently sent in all packets
   if (uwbConfig->positionEnabled) {
+    lppCalls++;
     txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
     txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
@@ -604,8 +659,10 @@ static void setTxData(dwDevice_t *dev)
 // Setup the radio to send a packet
 static void setupTx(dwDevice_t *dev)
 {
+  txCalls++;
   dwTime_t txTime = findTransmitTimeAsSoonAsPossible(dev);
   ctx.txTime = txTime.low32;
+  ctx.txTimeHi32 = txTime.high32;
   ctx.seqNr = (ctx.seqNr + 1) & 0x7f;
 
   setTxData(dev);
@@ -655,6 +712,8 @@ static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
   ctx.anchorId = config->address[0];
   ctx.seqNr = 0;
   ctx.txTime = 0;
+  ctx.txTimeHi32 = 0;
+  ctx.gOffset = 0;
   ctx.nextTxTick = 0;
   ctx.systemTxFreq = systemTxFreq;
   ctx.averageTxDelay = 1000.0 / ANCHOR_MIN_TX_FREQ;
