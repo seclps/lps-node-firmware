@@ -336,26 +336,26 @@ static void setTxData(dwDevice_t *dev)
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
     memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
       
-      pos->tesla_counter = tesla_counter;
+      //pos->tesla_counter = tesla_counter;
     txcounter++;
       
     uint32_t interval = MAX((uint32_t)(tesla_counter/1000),1);
 
-      pos->currentInterval = interval;
+      pos->interval = interval;
     static md5_byte_t key[8] = {'0','0','0','0','0','0','0','0'};
     key[0] = keychain[(TESLA_TOTAL_DURATION-2)-(interval%(TESLA_TOTAL_DURATION-1))];
-      pos->currentKeyByte = key[0];
+      pos->interval = key[0];
 
     //if (key[0] == 0x02) {
     // txcounter++;
     //}
-    memcpy(pos->phash, hashebytes[ctx.anchorId], 8); 
+    memcpy(pos->nextConstellationHash, hashebytes[ctx.anchorId], 8);
       
     md5_byte_t digest[16];
     hmac_md5((md5_byte_t *)pos->position, 12+8, key, 8, digest); // msg is 12 bytes, its hash is 8 bytes, key is 3 bytes, write result to mac_digest
       
-    memcpy(pos->hash, digest, 8);
-    memcpy(pos->key, key, 8);
+    memcpy(pos->mac, digest, 8);
+    memcpy(pos->disclosedKey, key, 8);
 
     lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }

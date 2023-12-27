@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "md5.h"
+
 void lppHandleShortPacket(char *data, size_t length);
 
 #define SHORT_LPP 0xF0
@@ -41,14 +43,10 @@ void lppHandleShortPacket(char *data, size_t length);
 
 struct lppShortAnchorPosition_s {
   float position[3];
-  uint8_t phash[8];
-  uint8_t hash[8];
-  uint8_t key[8];
-    // for logging only
-  uint32_t tesla_counter;
-  uint32_t currentInterval;
-  uint8_t currentKeyByte;
-
+  uint8_t interval;
+  //md5_byte_t nextConstellationHash[8];
+  md5_byte_t mac[8];
+  md5_byte_t disclosedKey[16];
 } __attribute__((packed));
 
 #define LPP_SHORT_REBOOT_TO_BOOTLOADER 0x00

@@ -15,7 +15,9 @@
         "system_error": "c",
         "type_traits": "c",
         "variant": "c",
-        "vector": "c"
+        "vector": "c",
+        "freertos.h": "c",
+        "hmac_md5.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true
 }

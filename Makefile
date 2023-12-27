@@ -56,7 +56,7 @@ OBJS+=src/dwOps.o
 #O3
 #O0
 #Og
-CFLAGS+=$(PROCESSOR) $(INCLUDES) -O3 -g3 -Wall -Wno-pointer-sign -std=gnu11
+CFLAGS+=$(PROCESSOR) $(INCLUDES) -Og -g3 -Wall -Wno-pointer-sign -std=gnu11
 LDFLAGS+=$(PROCESSOR) --specs=nano.specs --specs=nosys.specs -lm -lc -u _printf_float
 
 ifeq ($(strip $(BOOTLOAD)),0)

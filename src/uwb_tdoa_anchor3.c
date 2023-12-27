@@ -57,6 +57,9 @@ The implementation must handle
 #include "cfg.h"
 #include "lpp.h"
 
+#include "md5.h"
+#include "hmac_md5.h"
+
 #define debug(...) printf(__VA_ARGS__)
 
 // Time length of the preamble
@@ -215,6 +218,7 @@ typedef struct {
 #define LPP_TYPE (LPP_HEADER + 1)
 #define LPP_PAYLOAD (LPP_HEADER + 2)
 
+#define TESLA_INTERVALS 50
 
 static uint32_t _lastRX = 0;
 static uint8_t _rxWrapovers = 0;
@@ -223,6 +227,18 @@ static uint32_t _lastTX = 0;
 static uint16_t txCalls = 0;
 static uint16_t rxCalls = 0;
 static uint16_t lppCalls = 0;
+
+static md5_byte_t sharedKeychain[TESLA_INTERVALS][16] = {0};
+static md5_byte_t k0[16] = {0};
+
+//static float validConstellation[8][3] = {0};
+
+static uint8_t getCurrentMockIntervalBasedOnLastInfo() {
+    double time = STD_TIME_TO_SEC(_lastTX * 1.0 + ctx.gOffset);
+    double fraction = time - (uint16_t)time;
+    uint8_t interval = fraction*1e3/20; // 50 intervals (0 to 49)
+    return interval;
+}
 
 static anchorContext_t* getContext(uint8_t anchorId) {
   uint8_t slot = ctx.anchorCtxLookup[anchorId];
@@ -483,6 +499,13 @@ static bool updateClockCorrection(anchorContext_t* anchorCtx, double clockCorrec
   return sampleIsAccepted;
 }
 
+static void genMD5(md5_byte_t *input, uint8_t len, md5_byte_t *output) {
+    md5_state_t hash_state;
+    md5_init(&hash_state);
+    md5_append(&hash_state, input, len);
+    md5_finish(&hash_state, output);
+}
+
 static void handleRangePacket(const uint32_t localTime, uint32_t rxTime, const packet_t* rxPacket)
 {
   const uint8_t remoteAnchorId = rxPacket->sourceAddress[0];
@@ -526,6 +549,16 @@ static void handleRangePacket(const uint32_t localTime, uint32_t rxTime, const p
   }
 }
 
+/*
+static void updateConstellation(uint8_t anchorId, char *data, size_t length) {
+    if (length < 1) return;
+    if (data[0] == LPP_SHORT_ANCHOR_POSITION) {
+        struct lppShortAnchorPosition_s* newpos = (struct lppShortAnchorPosition_s*)&data[1];
+        memcpy(validConstellation[anchorId-8], newpos->position, 3*sizeof(float));
+    }
+}
+*/
+
 static void handleRxPacket(dwDevice_t *dev)
 {
   static packet_t rxPacket;
@@ -549,9 +582,14 @@ static void handleRxPacket(dwDevice_t *dev)
     return;
   }
 
+  if (rxPacket.sourceAddress[0] < 8 || rxPacket.sourceAddress[0] > 15) { // assume anchors 8...15 to be the only valid constellation
+      return;
+  }
+    
   switch(rxPacket.payload[0]) {
   case PACKET_TYPE_TDOA3:
     handleRangePacket(localTime, rxTime.low32, &rxPacket);
+    //updateConstellation(rxPacket.sourceAddress[0], &rxPacket.payload[1], dataLength - MAC802154_HEADER_LENGTH - 1);
     break;
   case SHORT_LPP:
     if (rxPacket.destAddress[0] == ctx.anchorId) {
@@ -635,6 +673,7 @@ static void setTxData(dwDevice_t *dev)
     txPacket.payload[0] = PACKET_TYPE_TDOA3;
 
     firstEntry = false;
+
   }
 
   uwbConfig_t *uwbConfig = uwbGetConfig();
@@ -648,10 +687,36 @@ static void setTxData(dwDevice_t *dev)
     txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[rangePacketSize + LPP_PAYLOAD];
-    memcpy(pos->position, uwbConfig->position, 3 * sizeof(float));
-
-    lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
+      
+      //uint8_t currentInterval = getCurrentMockIntervalBasedOnLastInfo();
+      //md5_byte_t *prevKey = sharedKeychain[currentInterval == 0 ? 49 : currentInterval - 1];
+      //md5_byte_t *currentKey = sharedKeychain[currentInterval];      
+      //md5_byte_t nextConstellationHash[16];
+      
+      
+      
+      // we currently assume anchor's position don't change over time once set
+      // this is a strong assumption for two reasons:
+      // 1. CF also needs to maintain full AND valid constellation
+      // 2. CF cannot start if it doesn't know hash of full and valid constellation at start of protocol
+      // 3. anchors need to know any change in the constellation in advance
+      // Maybe hard-code initial constellation?
+      // TODO: maintain next constellation in LPP
+      //genMD5((md5_byte_t *)validConstellation, 8*3*sizeof(float), nextConstellationHash);
+      
+      //pos->interval = currentInterval;
+      //memcpy(pos->interval, &currentInterval, 1);
+      memcpy(pos->position, uwbConfig->position, 3 * sizeof(float));
+      //md5_byte_t mac[16];
+      //hmac_md5(pos->position, 12, currentKey, 16, mac);
+      //memcpy(pos->mac, mac, 8);
+      //memcpy(pos->nextConstellationHash, nextConstellationHash, 8);
+      //memcpy(pos->disclosedKey, prevKey, 16);
+      
+      
+      lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }
+    
 
   dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH + rangePacketSize + lppLength);
 }
@@ -728,6 +793,13 @@ static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
   clearAnchorRxCount();
 
   srand(ctx.anchorId);
+
+  md5_byte_t s = 0x0;
+  genMD5(&s, 1, sharedKeychain[0]);
+  for (int i = 1; i < 50;i++) {
+      genMD5(sharedKeychain[i-1], 16, sharedKeychain[i]);
+  }
+  genMD5(sharedKeychain[49], 16, k0);
 }
 
 // Called for each DW radio event
