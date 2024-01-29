@@ -56,7 +56,7 @@ OBJS+=src/dwOps.o
 #O3
 #O0
 #Og
-CFLAGS+=$(PROCESSOR) $(INCLUDES) -Og -g3 -Wall -Wno-pointer-sign -std=gnu11
+CFLAGS+=$(PROCESSOR) $(INCLUDES) -O3 -g3 -Wall -Wno-pointer-sign -std=gnu11
 LDFLAGS+=$(PROCESSOR) --specs=nano.specs --specs=nosys.specs -lm -lc -u _printf_float
 
 ifeq ($(strip $(BOOTLOAD)),0)
@@ -110,6 +110,9 @@ factory:
 reset_and_dfu:
 	tools/make/reset-to-dfu.py
 	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
+
+docker:
+	docker run --rm -v ${PWD}:/module bitcraze/builder ./tools/build/compile
 
 # Generic rules
 %.bin: %.elf

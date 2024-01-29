@@ -349,7 +349,7 @@ static void setTxData(dwDevice_t *dev)
     //if (key[0] == 0x02) {
     // txcounter++;
     //}
-    memcpy(pos->nextConstellationHash, hashebytes[ctx.anchorId], 8);
+    //memcpy(pos->nextConstellationHash, hashebytes[ctx.anchorId], 8);
       
     md5_byte_t digest[16];
     hmac_md5((md5_byte_t *)pos->position, 12+8, key, 8, digest); // msg is 12 bytes, its hash is 8 bytes, key is 3 bytes, write result to mac_digest

@@ -124,6 +124,7 @@ The implementation must handle
 #define STD_TIME_TO_SEC(time) (((time)/SCALEDDOWN_UINT32_MAX)*SECS_PER_WRAP)
 
 
+
 // 1099511627775
 // 4294967295
 // 17207401025600
@@ -182,6 +183,17 @@ static struct ctx_s {
 
   // The maximum system tx frequency
   float systemTxFreq;
+
+  // TESLA interval
+
+  struct {
+    float position[3];
+    uint8_t I;
+  } nav;
+
+  md5_byte_t hmac[HASH_LEN];
+  uint8_t computedHMACI;
+  
 } ctx;
 
 // Packet formats
@@ -218,7 +230,12 @@ typedef struct {
 #define LPP_TYPE (LPP_HEADER + 1)
 #define LPP_PAYLOAD (LPP_HEADER + 2)
 
-#define TESLA_INTERVALS 50
+#define KEYCHAIN_SIZE 200
+#define TDOAS_FREQ 10.0
+#define TDOAS_PER_SEC (1.0/TDOAS_FREQ)
+#define LIFESPAN ((uint16_t)(KEYCHAIN_SIZE*TDOAS_PER_SEC))
+#define LAST_KEY_INDEX (KEYCHAIN_SIZE - 1)
+#define DISCLOSURE_DELAY 1
 
 static uint32_t _lastRX = 0;
 static uint8_t _rxWrapovers = 0;
@@ -228,16 +245,25 @@ static uint16_t txCalls = 0;
 static uint16_t rxCalls = 0;
 static uint16_t lppCalls = 0;
 
-static md5_byte_t sharedKeychain[TESLA_INTERVALS][16] = {0};
-static md5_byte_t k0[16] = {0};
+static md5_byte_t sharedKeychain[KEYCHAIN_SIZE][HASH_LEN];// = {0};
+static md5_byte_t k0[HASH_LEN];// = {0};
 
 //static float validConstellation[8][3] = {0};
 
 static uint8_t getCurrentMockIntervalBasedOnLastInfo() {
-    double time = STD_TIME_TO_SEC(_lastTX * 1.0 + ctx.gOffset);
-    double fraction = time - (uint16_t)time;
-    uint8_t interval = fraction*1e3/20; // 50 intervals (0 to 49)
+  //return 1;
+    double time = ctx.lastUpdatedTime;
+    uint16_t whole = (uint16_t)time;
+    uint16_t centi = (time - whole) * 100;
+    uint16_t cyclic = whole % LIFESPAN;
+    uint16_t scaled = centi + cyclic * 100;
+    uint8_t interval = scaled * TDOAS_PER_SEC;
     return interval;
+}
+
+// last key is used for the first interval, second last key for second interval and so on 
+static uint8_t getKeyIndexFor(uint8_t interval) {
+  return (LAST_KEY_INDEX - interval) % KEYCHAIN_SIZE;
 }
 
 static anchorContext_t* getContext(uint8_t anchorId) {
@@ -561,6 +587,9 @@ static void updateConstellation(uint8_t anchorId, char *data, size_t length) {
 
 static void handleRxPacket(dwDevice_t *dev)
 {
+  
+  rxCalls++;
+
   static packet_t rxPacket;
   dwTime_t rxTime = { .full = 0 };
 
@@ -573,7 +602,6 @@ static void handleRxPacket(dwDevice_t *dev)
 
   const uint32_t localTime = GET_STD_TIME(_lastRX, _rxWrapovers);
 
-  rxCalls++;
   int dataLength = dwGetDataLength(dev);
   rxPacket.payload[0] = 0;
   dwGetData(dev, (uint8_t*)&rxPacket, dataLength);
@@ -676,25 +704,32 @@ static void setTxData(dwDevice_t *dev)
 
   }
 
-  uwbConfig_t *uwbConfig = uwbGetConfig();
-
   int rangePacketSize = populateTxData((rangePacket3_t *)txPacket.payload);
 
   // LPP anchor position is currently sent in all packets
-  if (uwbConfig->positionEnabled) {
+  if (uwbGetConfig()->positionEnabled) {
     lppCalls++;
     txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
     txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
     struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[rangePacketSize + LPP_PAYLOAD];
       
-      //uint8_t currentInterval = getCurrentMockIntervalBasedOnLastInfo();
-      //md5_byte_t *prevKey = sharedKeychain[currentInterval == 0 ? 49 : currentInterval - 1];
-      //md5_byte_t *currentKey = sharedKeychain[currentInterval];      
+
+      // TODO: make sure the interval here matches the one when creating hmac
+      uint8_t I = ctx.nav.I;
+      uint8_t prevKeyIndex = getKeyIndexFor(I-1);
+      uint8_t lastKeyIndex = getKeyIndexFor(LAST_KEY_INDEX);
+
+      md5_byte_t *prevKey = sharedKeychain[I ? prevKeyIndex : lastKeyIndex];
+      pos->interval = I;
+      memcpy(pos->position, ctx.nav.position, 3 * sizeof(float));
+      memcpy(pos->mac, ctx.hmac, HASH_LEN);
+
+
+      memcpy(pos->disclosedKey, prevKey, HASH_LEN);
+      
+      
       //md5_byte_t nextConstellationHash[16];
-      
-      
-      
       // we currently assume anchor's position don't change over time once set
       // this is a strong assumption for two reasons:
       // 1. CF also needs to maintain full AND valid constellation
@@ -703,17 +738,11 @@ static void setTxData(dwDevice_t *dev)
       // Maybe hard-code initial constellation?
       // TODO: maintain next constellation in LPP
       //genMD5((md5_byte_t *)validConstellation, 8*3*sizeof(float), nextConstellationHash);
-      
-      //pos->interval = currentInterval;
-      //memcpy(pos->interval, &currentInterval, 1);
-      memcpy(pos->position, uwbConfig->position, 3 * sizeof(float));
-      //md5_byte_t mac[16];
-      //hmac_md5(pos->position, 12, currentKey, 16, mac);
-      //memcpy(pos->mac, mac, 8);
-      //memcpy(pos->nextConstellationHash, nextConstellationHash, 8);
-      //memcpy(pos->disclosedKey, prevKey, 16);
-      
-      
+
+      //hmac_md5(prevKey, 16, currentKey, 16, pos->disclosedKey);
+      //memset(pos->interval, &currentInterval, 1);
+
+
       lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
   }
     
@@ -731,7 +760,7 @@ static void setupTx(dwDevice_t *dev)
   ctx.seqNr = (ctx.seqNr + 1) & 0x7f;
 
   setTxData(dev);
-
+  
   dwNewTransmit(dev);
   dwSetDefaults(dev);
   dwSetTxRxTime(dev, txTime);
@@ -754,9 +783,15 @@ static uint32_t startNextEvent(dwDevice_t *dev, uint32_t now)
   dwIdle(dev);
 
   if (ctx.nextTxTick < now) {
+    ctx.nav.I = getCurrentMockIntervalBasedOnLastInfo();
+    uint8_t keyIndex = getKeyIndexFor(ctx.nav.I);
+    md5_byte_t *key = sharedKeychain[keyIndex];
+    memcpy(ctx.nav.position, uwbGetConfig()->position, 3*sizeof(float));
+    //hmac_md5((md5_byte_t *)&ctx.nav, 12, keyIndex, HASH_LEN, ctx.hmac);
+    hmac_md5(ctx.nav.position, 12, key, HASH_LEN, ctx.hmac);
+    ctx.computedHMACI = ctx.nav.I;
     uint32_t newDelay = randomizeDelayToNextTx();
     ctx.nextTxTick = now + M2T(newDelay);
-
     setupTx(dev);
   } else {
     setupRx(dev);
@@ -795,11 +830,15 @@ static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
   srand(ctx.anchorId);
 
   md5_byte_t s = 0x0;
-  genMD5(&s, 1, sharedKeychain[0]);
-  for (int i = 1; i < 50;i++) {
-      genMD5(sharedKeychain[i-1], 16, sharedKeychain[i]);
+  md5_byte_t firstKey[HASH_LEN];
+  genMD5(&s, 1, firstKey);
+  memcpy(sharedKeychain[0], firstKey, HASH_LEN);
+  for (int i = 1; i < KEYCHAIN_SIZE;i++) {
+      md5_byte_t hash[HASH_LEN];
+      genMD5(sharedKeychain[i-1], HASH_LEN, hash);
+      memcpy(sharedKeychain[i], hash, HASH_LEN);
   }
-  genMD5(sharedKeychain[49], 16, k0);
+  genMD5(sharedKeychain[KEYCHAIN_SIZE-1], HASH_LEN, k0);
 }
 
 // Called for each DW radio event

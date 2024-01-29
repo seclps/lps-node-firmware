@@ -41,12 +41,14 @@ void lppHandleShortPacket(char *data, size_t length);
 #define LPP_SHORT_UWB_MODE 0x05
 #define LPP_SHORT_INIT_TESLA 0x06
 
+#define HASH_LEN 16
+
 struct lppShortAnchorPosition_s {
   float position[3];
   uint8_t interval;
+  md5_byte_t mac[HASH_LEN];
+  md5_byte_t disclosedKey[HASH_LEN];
   //md5_byte_t nextConstellationHash[8];
-  md5_byte_t mac[8];
-  md5_byte_t disclosedKey[16];
 } __attribute__((packed));
 
 #define LPP_SHORT_REBOOT_TO_BOOTLOADER 0x00

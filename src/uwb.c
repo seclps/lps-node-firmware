@@ -45,6 +45,7 @@ extern uwbAlgorithm_t uwbTdoa2Algorithm;
 extern uwbAlgorithm_t uwbTdoa3Algorithm;
 static uwbAlgorithm_t *algorithm = &dummyAlgorithm;
 
+/*
 struct {
   uwbAlgorithm_t *algorithm;
   char *name;
@@ -52,6 +53,18 @@ struct {
   {.algorithm = &uwbTwrAnchorAlgorithm, .name = "TWR Anchor"},
   {.algorithm = &uwbTwrTagAlgorithm,    .name = "TWR Tag"},
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
+  {.algorithm = &dummyAlgorithm,     .name = "TDoA Anchor V2"},
+  {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
+  {NULL, NULL},
+};
+*/
+struct {
+  uwbAlgorithm_t *algorithm;
+  char *name;
+} availableAlgorithms[] = {
+  {.algorithm = &dummyAlgorithm, .name = "TWR Anchor"},
+  {.algorithm = &dummyAlgorithm,    .name = "TWR Tag"},
+  {.algorithm = &dummyAlgorithm,   .name = "Sniffer"},
   {.algorithm = &dummyAlgorithm,     .name = "TDoA Anchor V2"},
   {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
   {NULL, NULL},
@@ -120,6 +133,8 @@ void uwbInit()
   } else {
     algorithm = &dummyAlgorithm;
   }
+
+  algorithm = &uwbTdoa3Algorithm;
 
   config.positionEnabled = cfgReadFP32list(cfgAnchorPos, config.position, 3);
 

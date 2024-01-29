@@ -6,8 +6,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
 
-# Make data base, printed on Tue Dec 12 12:58:35 2023
+# Make data base, printed on Mon Jan 29 14:07:42 2024
 
 # Variables
 
@@ -37,23 +38,24 @@ SHELL = /bin/sh
 VSCODE_NLS_CONFIG = {"locale":"en-gb","osLocale":"en-at","availableLanguages":{},"_languagePackSupport":true}
 # environment
 _ = /usr/bin/make
-# makefile (from `Makefile', line 70)
+# makefile (from `Makefile', line 71)
 CFLAGS = $(PROCESSOR) $(INCLUDES) -O3 -g3 -Wall -Wno-pointer-sign -std=gnu11 -ffunction-sections -fdata-sections
 # makefile (from `Makefile', line 25)
 FREERTOS_OBJS = list queue timers tasks port event_groups
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
-# makefile (from `Makefile', line 78)
+# makefile (from `Makefile', line 79)
 AS = $(PREFIX)as
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # makefile (from `Makefile', line 46)
 USB_CORES = core ctlreq ioreq
+ 
 # environment
 VSCODE_CWD = /
 # environment
 PATH = /Users/mahyar/mambaforge/bin:/Users/mahyar/.opam/default/bin:/Library/Frameworks/Python.framework/Versions/3.11/bin:/Library/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/go/bin:/usr/local/MacGPG2/bin:/usr/local/share/dotnet:/opt/X11/bin:~/.dotnet/tools:/Library/Apple/usr/bin:/Applications/ARM/bin:/Applications/Wireshark.app/Contents/MacOS:/Users/mahyar/Developer/proverif2.04:/Users/mahyar/Developer/FStar/bin
-# makefile (from `Makefile', line 77)
+# makefile (from `Makefile', line 78)
 LD = $(PREFIX)gcc
 # environment
 OPENSSL_ROOT_DIR = /usr/local/opt/openssl@3
@@ -61,20 +63,20 @@ OPENSSL_ROOT_DIR = /usr/local/opt/openssl@3
 OPENOCD = openocd
 # environment
 ELECTRON_RUN_AS_NODE = 1
-# makefile (from `Makefile', line 71)
+# makefile (from `Makefile', line 72)
 LDFLAGS = $(PROCESSOR) --specs=nano.specs --specs=nosys.specs -lm -lc -u _printf_float -Ttools/make/stm32f072.ld -Wl,-Map=bin/$(PROG).map,--cref,--gc-sections
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # makefile (from `Makefile', line 47)
 USB_CDC = cdc
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.hUwSzcVqMV/Listeners
-# makefile (from `Makefile', line 80)
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.fFZaV0MEy6/Listeners
+# makefile (from `Makefile', line 81)
 SIZE = $(PREFIX)size
 # automatic
 %F = $(notdir $%)
 # environment
-DISPLAY = /private/tmp/com.apple.launchd.akTfVh6Nyj/org.xquartz:0
+DISPLAY = /private/tmp/com.apple.launchd.98HngmnwO6/org.xquartz:0
 # makefile (from `Makefile', line 55)
 OBJS = $(foreach mod, $(FREERTOS_OBJS), lib/freertos/src/$(mod).o) src/f0/startup_stm32f072xb.o src/f0/system_stm32f0xx.o src/f0/stm32f0xx_it.o src/f0/stm32f0xx_hal_msp.o src/f0/gpio.o src/f0/i2c.o src/f0/spi.o src/f0/system.o src/f0/usart.o src/f0/usbd_conf.o src/eeprom.o src/bootmode.o src/main.o src/usb_device.o src/usbd_cdc_if.o src/usbd_desc.o src/lps25h.o src/led.o src/button.o src/cfg.o src/usbcomm.o src/test_support.o src/production_test.o src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o src/md5.o src/hmac_md5.o $(foreach mod, $(HALS), $(HAL_ROOT)/Src/stm32$(CPU)xx_hal_$(mod).o) $(HAL_ROOT)/Src/stm32$(CPU)xx_hal.o $(foreach mod, $(USB_CORES), Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_$(mod).o) $(foreach mod, $(USB_CDC), Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_$(mod).o) vendor/libdw1000/src/libdw1000.o vendor/libdw1000/src/libdw1000Spi.o src/dwOps.o
 # environment
@@ -83,25 +85,23 @@ PWD = /Users/mahyar/Developer/lps-node-firmware
 ORIGINAL_XDG_CURRENT_DESKTOP = undefined
 # makefile (from `Makefile', line 5)
 PYTHON = python3
-# makefile (from `Makefile', line 8)
+# makefile (from `Makefile', line 9)
 BOOTLOAD = 0
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 HOME = /Users/mahyar
-# makefile (from `Makefile', line 9)
-ARCH_CFLAGS = -O0 -Wconversion
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/mahyar/Library/Application Support/Code/CachedData/1a5daa3a0231a0fbba4f14db7ec463cf99d7768e
+VSCODE_CODE_CACHE_PATH = /Users/mahyar/Library/Application Support/Code/CachedData/8b3775030ed1a69b13e4f4c628c612102e30a681
 # environment
 LOGNAME = mahyar
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
-# makefile (from `Makefile', line 74)
+# makefile (from `Makefile', line 75)
 PREFIX = arm-none-eabi-
-# makefile (from `Makefile', line 63)
+# makefile (from `Makefile', line 64)
 LOAD_ADDRESS = 0x8000000
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
@@ -117,7 +117,7 @@ MAKE = $(MAKE_COMMAND)
 MAKECMDGOALS := all
 # environment
 SHLVL = 1
-# makefile (from `Makefile', line 76)
+# makefile (from `Makefile', line 77)
 CC = $(PREFIX)gcc
 # makefile (from `Makefile', line 16)
 PROCESSOR = -mthumb -mcpu=cortex-m0 -DHSI48_VALUE="((uint32_t)48000000)" -DSTM32F072xB
@@ -142,7 +142,7 @@ TMPDIR = /var/folders/z8/x8tny7s968dbv4_31z7s18r40000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/mahyar/Library/Application Support/Code/1.84-main.sock
+VSCODE_IPC_HOOK = /Users/mahyar/Library/Application Support/Code/1.85-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -152,15 +152,18 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.5907803.5907809
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.11294403.11294409
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
+# environment
+VSCODE_L10N_BUNDLE_LOCATION = 
 # automatic
 +F = $(notdir $+)
 # makefile (from `Makefile', line 17)
 OPENOCD_TARGET = target/stm32f0x.cfg
 # makefile (from `Makefile', line 2)
 OPENOCD_INTERFACE = ./jlink_building.cfg
+ 
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
 # environment
@@ -179,7 +182,7 @@ HAL_ROOT = hal/stm32f0xx
 LC_ALL = C
 # automatic
 ^F = $(notdir $^)
-# makefile (from `Makefile', line 79)
+# makefile (from `Makefile', line 80)
 OBJCOPY = $(PREFIX)objcopy
 # default
 SUFFIXES := 
@@ -194,9 +197,9 @@ CLICOLOR = 1
 # environment
 LANG = C
 # environment
-VSCODE_PID = 3633
+VSCODE_PID = 5863
 # variable set hash-table stats:
-# Load=92/1024=9%, Rehash=0, Collisions=73/207=35%
+# Load=92/1024=9%, Rehash=0, Collisions=73/206=35%
 
 # Pattern-specific Variable Values
 
@@ -211,12 +214,12 @@ VSCODE_PID = 3633
 # Implicit Rules
 
 %.bin: %.elf
-#  commands to execute (from `Makefile', line 115):
+#  commands to execute (from `Makefile', line 119):
 	$(OBJCOPY) $^ -O binary $@
 	
 
 %.dfu: %.bin
-#  commands to execute (from `Makefile', line 118):
+#  commands to execute (from `Makefile', line 122):
 	$(PYTHON) tools/make/dfu-convert.py -b $(LOAD_ADDRESS):$^ $@
 	
 
@@ -243,11 +246,10 @@ src/usbcomm.o:
 #  File has not been updated.
 
 factory:
- 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 107):
+#  commands to execute (from `Makefile', line 108):
 	dfu-util -d 0483:df11 -a 0 -D lps-node-firmware-2022.09.dfu -s :leave
 	
 
@@ -261,7 +263,7 @@ erase:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 97):
+#  commands to execute (from `Makefile', line 98):
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
 	-c "stm32f1x mass_erase 0" -c shutdown
 	
@@ -303,7 +305,7 @@ openocd:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 101):
+#  commands to execute (from `Makefile', line 102):
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets
 	
 
@@ -321,9 +323,10 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.o:
 
 bin/lps-node-firmware.elf: lib/freertos/src/list.o lib/freertos/src/queue.o lib/freertos/src/timers.o lib/freertos/src/tasks.o lib/freertos/src/port.o lib/freertos/src/event_groups.o src/f0/startup_stm32f072xb.o src/f0/system_stm32f0xx.o src/f0/stm32f0xx_it.o src/f0/stm32f0xx_hal_msp.o src/f0/gpio.o src/f0/i2c.o src/f0/spi.o src/f0/system.o src/f0/usart.o src/f0/usbd_conf.o src/eeprom.o src/bootmode.o src/main.o src/usb_device.o src/usbd_cdc_if.o src/usbd_desc.o src/lps25h.o src/led.o src/button.o src/cfg.o src/usbcomm.o src/test_support.o src/production_test.o src/uwb.o src/uwb_twr_anchor.o src/uwb_sniffer.o src/uwb_twr_tag.o src/lpp.o src/uwb_tdoa_anchor2.o src/uwb_tdoa_anchor3.o src/md5.o src/hmac_md5.o hal/stm32f0xx/Src/stm32f0xx_hal_i2c_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_gpio.o hal/stm32f0xx/Src/stm32f0xx_hal_rcc.o hal/stm32f0xx/Src/stm32f0xx_hal_cortex.o hal/stm32f0xx/Src/stm32f0xx_hal_i2c.o hal/stm32f0xx/Src/stm32f0xx_hal_pcd.o hal/stm32f0xx/Src/stm32f0xx_hal_dma.o hal/stm32f0xx/Src/stm32f0xx_hal_pcd_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_rcc_ex.o hal/stm32f0xx/Src/stm32f0xx_hal_spi.o hal/stm32f0xx/Src/stm32f0xx_hal_uart.o hal/stm32f0xx/Src/stm32f0xx_hal_pwr.o hal/stm32f0xx/Src/stm32f0xx_hal.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.o Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.o vendor/libdw1000/src/libdw1000.o vendor/libdw1000/src/libdw1000Spi.o src/dwOps.o
 #  Implicit rule search has not been done.
+ 
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 85):
+#  commands to execute (from `Makefile', line 86):
 	$(LD) -o $@ $^ $(LDFLAGS)
 	$(SIZE) $@
 	@echo BOOTLOADER Support: $(BOOTLOAD)
@@ -398,7 +401,7 @@ src/md5.o:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2023-12-07 15:44:33
+#  Last modified 2023-12-30 09:25:32
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -462,7 +465,7 @@ reset_and_dfu:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 110):
+#  commands to execute (from `Makefile', line 111):
 	tools/make/reset-to-dfu.py
 	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
 	
@@ -483,13 +486,12 @@ dfu:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 104):
+#  commands to execute (from `Makefile', line 105):
 	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
 	
 
 # Not a target:
 hal/stm32f0xx/Src/stm32f0xx_hal_cortex.o:
- 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -546,7 +548,7 @@ clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 90):
+#  commands to execute (from `Makefile', line 91):
 	rm -f bin/lps-node-firmware.elf bin/lps-node-firmware.dfu bin/.map $(OBJS)
 	
 
@@ -567,6 +569,14 @@ hal/stm32f0xx/Src/stm32f0xx_hal_gpio.o:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+
+docker:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 115):
+	docker run --rm -v ${PWD}:/module bitcraze/builder ./tools/build/compile
+	
 
 check_submodules:
 #  Implicit rule search has not been done.
@@ -592,7 +602,7 @@ check_submodules:
 # ? := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=2/11=18%
-#  commands to execute (from `Makefile', line 121):
+#  commands to execute (from `Makefile', line 125):
 	$(PYTHON) tools/make/check-for-submodules.py
 	
 
@@ -638,6 +648,7 @@ src/f0/startup_stm32f072xb.o:
 #  Modification time never checked.
 #  File has not been updated.
 
+ 
 # Not a target:
 src/f0/i2c.o:
 #  Implicit rule search has not been done.
@@ -648,7 +659,7 @@ flash:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 93):
+#  commands to execute (from `Makefile', line 94):
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
 	-c "flash write_image erase bin/lps-node-firmware.elf" -c "verify_image bin/lps-node-firmware.elf" -c "reset run" -c shutdown
 	
@@ -708,7 +719,7 @@ src/hmac_md5.o:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=72/1024=7%, Rehash=0, Collisions=3/147=2%
+# Load=73/1024=7%, Rehash=0, Collisions=3/148=2%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -720,6 +731,6 @@ src/hmac_md5.o:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Tue Dec 12 12:58:35 2023
+# Finished Make data base on Mon Jan 29 14:07:42 2024
 
  

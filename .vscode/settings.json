@@ -17,7 +17,10 @@
         "variant": "c",
         "vector": "c",
         "freertos.h": "c",
-        "hmac_md5.h": "c"
+        "hmac_md5.h": "c",
+        "cstdint": "c",
+        "chrono": "c",
+        "ratio": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true
 }
