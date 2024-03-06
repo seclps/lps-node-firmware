@@ -621,6 +621,7 @@ static StackType_t ucMainStack[configMINIMAL_STACK_SIZE];
 
 int main() {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
+
   HAL_Init();
 
   // Configure the system clock

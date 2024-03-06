@@ -63,25 +63,25 @@ The implementation must handle
 #define debug(...) printf(__VA_ARGS__)
 
 // Time length of the preamble
-#define PREAMBLE_LENGTH_S ( 128 * 1017.63e-9 )
-#define PREAMBLE_LENGTH (uint64_t)( PREAMBLE_LENGTH_S * 499.2e6 * 128 )
+#define PREAMBLE_LENGTH_S (128 * 1017.63e-9)
+#define PREAMBLE_LENGTH (uint64_t)(PREAMBLE_LENGTH_S * 499.2e6 * 128)
 
 // Guard length to account for clock drift and time of flight
-#define TDMA_GUARD_LENGTH_S ( 1e-6 )
-#define TDMA_GUARD_LENGTH (uint64_t)( TDMA_GUARD_LENGTH_S * 499.2e6 * 128 )
+#define TDMA_GUARD_LENGTH_S (1e-6)
+#define TDMA_GUARD_LENGTH (uint64_t)(TDMA_GUARD_LENGTH_S * 499.2e6 * 128)
 
-#define TDMA_EXTRA_LENGTH_S ( 300e-6 )
-#define TDMA_EXTRA_LENGTH (uint64_t)( TDMA_EXTRA_LENGTH_S * 499.2e6 * 128 )
+#define TDMA_EXTRA_LENGTH_S (300e-6)
+#define TDMA_EXTRA_LENGTH (uint64_t)(TDMA_EXTRA_LENGTH_S * 499.2e6 * 128)
 
-#define TDMA_HIGH_RES_RAND_S ( 1e-3 )
-#define TDMA_HIGH_RES_RAND (uint64_t)( TDMA_HIGH_RES_RAND_S * 499.2e6 * 128 )
+#define TDMA_HIGH_RES_RAND_S (1e-3)
+#define TDMA_HIGH_RES_RAND (uint64_t)(TDMA_HIGH_RES_RAND_S * 499.2e6 * 128)
 
 #define ANCHOR_LIST_UPDATE_INTERVAL 1000;
 
 #define ANCHOR_STORAGE_COUNT 16
 #define REMOTE_TX_MAX_COUNT 8
 #if REMOTE_TX_MAX_COUNT > ANCHOR_STORAGE_COUNT
-  #error "Invalid settings"
+#error "Invalid settings"
 #endif
 
 #define ID_COUNT 256
@@ -102,9 +102,8 @@ The implementation must handle
 // The interval (in ms) that the delay is randomized in, around the target frequency
 #define DELAY_RANDOM_INTERVAL 10
 
-
-#define ANTENNA_OFFSET 154.6   // In meters
-#define ANTENNA_DELAY  ((ANTENNA_OFFSET*499.2e6*128)/299792458.0) // In radio tick
+#define ANTENNA_OFFSET 154.6                                           // In meters
+#define ANTENNA_DELAY ((ANTENNA_OFFSET * 499.2e6 * 128) / 299792458.0) // In radio tick
 #define MIN_TOF ANTENNA_DELAY
 
 #define MAX_CLOCK_DEVIATION_SPEC 10e-6
@@ -115,31 +114,30 @@ The implementation must handle
 #define CLOCK_CORRECTION_FILTER 0.1d
 #define CLOCK_CORRECTION_BUCKET_MAX 4
 
-#define DISTANCE_VALIDITY_PERIOD M2T(2 * 1000);
+#define DISTANCE_VALIDITY_PERIOD M2T(3 * 1000);
 
 #define TIME_SCALEDOWN_FACTOR 1e3
-#define SCALEDDOWN_UINT32_MAX (UINT32_MAX/TIME_SCALEDOWN_FACTOR)
-#define GET_STD_TIME(time, wrapovers) ((time)/TIME_SCALEDOWN_FACTOR + (wrapovers)*SCALEDDOWN_UINT32_MAX)
+#define SCALEDDOWN_UINT32_MAX (UINT32_MAX / TIME_SCALEDOWN_FACTOR)
+#define GET_STD_TIME(time, wrapovers) ((time) / TIME_SCALEDOWN_FACTOR + (wrapovers) * SCALEDDOWN_UINT32_MAX)
 #define SECS_PER_WRAP 17.2074010256
-#define STD_TIME_TO_SEC(time) (((time)/SCALEDDOWN_UINT32_MAX)*SECS_PER_WRAP)
-
-
+#define STD_TIME_TO_SEC(time) (((time) / SCALEDDOWN_UINT32_MAX) * SECS_PER_WRAP)
 
 // 1099511627775
 // 4294967295
 // 17207401025600
-//17140184611400
-//#define FULL_WRAPOVER_TIME 1/128/499.2e6*UINT40_MAX
+// 17140184611400
+// #define FULL_WRAPOVER_TIME 1/128/499.2e6*UINT40_MAX
 // == 1/128/499.2e6*1099511627775=17.207401025625376 in seconds
 // 17207401025625 ps
 // 17.140140736512 s
 // 67.2162381824 ms
 
 // Useful constants
-static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
+static const uint8_t base_address[] = {0, 0, 0, 0, 0, 0, 0xcf, 0xbc};
 
 // Anchor context
-typedef struct {
+typedef struct
+{
   uint8_t id;
   bool isUsed;
   uint8_t seqNr;
@@ -154,17 +152,18 @@ typedef struct {
 } anchorContext_t;
 
 // This context struct contains all the required global values of the algorithm
-static struct ctx_s {
+static struct ctx_s
+{
   int anchorId;
 
   // Information about latest transmitted packet
   uint8_t seqNr;
-  uint32_t txTime; // In UWB clock ticks
+  uint32_t txTime;     // In UWB clock ticks
   uint32_t txTimeHi32; // In UWB clock ticks
   // Global time, set to local if master, ow set to header.globalTime
   int32_t gOffset;
   float lastUpdatedTime;
-  
+
   // Next transmit time in system clock ticks
   uint32_t nextTxTick;
   int averageTxDelay; // ms
@@ -186,55 +185,61 @@ static struct ctx_s {
 
   // TESLA interval
 
-  struct {
+  struct
+  {
     float position[3];
     uint8_t I;
   } nav;
 
-  md5_byte_t hmac[HASH_LEN];
+  md5_byte_t hmac[MAC_FULL_LEN];
   uint8_t computedHMACI;
-  
+
 } ctx;
 
 // Packet formats
 #define PACKET_TYPE_TDOA3 0x30
 
-typedef struct {
+typedef struct
+{
   uint8_t type;
   uint8_t seq;
   uint32_t txTimeStamp;
   uint8_t remoteCount;
-  uint32_t globalTime;
+//  uint32_t globalTime; moved to Lpp
 } __attribute__((packed)) rangePacketHeader3_t;
 
-typedef struct {
+typedef struct
+{
   uint8_t id;
   uint8_t seq;
   uint32_t rxTimeStamp;
   uint16_t distance;
 } __attribute__((packed)) remoteAnchorDataFull_t;
 
-typedef struct {
+typedef struct
+{
   uint8_t id;
   uint8_t seq;
   uint32_t rxTimeStamp;
 } __attribute__((packed)) remoteAnchorDataShort_t;
 
-typedef struct {
+typedef struct
+{
   rangePacketHeader3_t header;
   uint8_t remoteAnchorData;
 } __attribute__((packed)) rangePacket3_t;
-
 
 #define LPP_HEADER 0
 #define LPP_TYPE (LPP_HEADER + 1)
 #define LPP_PAYLOAD (LPP_HEADER + 2)
 
 #define KEYCHAIN_SIZE 200
-#define TDOAS_FREQ 10.0
-#define TDOAS_PER_SEC (1.0/TDOAS_FREQ)
-#define LIFESPAN ((uint16_t)(KEYCHAIN_SIZE*TDOAS_PER_SEC))
+#define DATA_FREQ 10.0
+#define DATA_PER_SEC (1.0 / DATA_FREQ)
+#define LIFESPAN ((uint16_t)(KEYCHAIN_SIZE * DATA_PER_SEC))
 #define LAST_KEY_INDEX (KEYCHAIN_SIZE - 1)
+#define INTERVAL_LEN_IN_MS (DATA_PER_SEC * 1000)
+
 #define DISCLOSURE_DELAY 1
 
 static uint32_t _lastRX = 0;
@@ -245,55 +250,82 @@ static uint16_t txCalls = 0;
 static uint16_t rxCalls = 0;
 static uint16_t lppCalls = 0;
 
-static md5_byte_t sharedKeychain[KEYCHAIN_SIZE][HASH_LEN];// = {0};
-static md5_byte_t k0[HASH_LEN];// = {0};
+static md5_byte_t sharedKeychain[KEYCHAIN_SIZE][KEY_LEN]; // = {0};
+static md5_byte_t k0[KEY_LEN];                            // = {0};
 
-//static float validConstellation[8][3] = {0};
+// static float validConstellation[8][3] = {0};
 
-static uint8_t getCurrentMockIntervalBasedOnLastInfo() {
-  //return 1;
-    double time = ctx.lastUpdatedTime;
-    uint16_t whole = (uint16_t)time;
-    uint16_t centi = (time - whole) * 100;
-    uint16_t cyclic = whole % LIFESPAN;
-    uint16_t scaled = centi + cyclic * 100;
-    uint8_t interval = scaled * TDOAS_PER_SEC;
-    return interval;
+static uint8_t getCurrentMockIntervalBasedOnLastInfo()
+{
+  // return 1;
+  double time = ctx.lastUpdatedTime;
+  uint16_t whole = (uint16_t)time;
+  // return whole % LIFESPAN;
+  uint16_t centi = (time - whole) * 100;
+  uint16_t cyclic = whole % LIFESPAN;
+  uint16_t scaled = centi + cyclic * 100;
+  uint8_t interval = scaled * DATA_PER_SEC;
+  return interval;
 }
 
-// last key is used for the first interval, second last key for second interval and so on 
-static uint8_t getKeyIndexFor(uint8_t interval) {
+// last key is used for the first interval, second last key for second interval and so on
+static uint8_t getKeyIndexFor(uint8_t interval)
+{
   return (LAST_KEY_INDEX - interval) % KEYCHAIN_SIZE;
 }
 
-static anchorContext_t* getContext(uint8_t anchorId) {
+static uint8_t getPreviousKeyIndexFor(uint8_t interval)
+{
+  uint8_t keyIndex;
+  int prevI = interval - DISCLOSURE_DELAY;
+  if (prevI < 0)
+  {
+    keyIndex = getKeyIndexFor(KEYCHAIN_SIZE + prevI);
+  }
+  else
+  {
+    keyIndex = getKeyIndexFor(prevI);
+  }
+  return keyIndex;
+}
+
+static anchorContext_t *getContext(uint8_t anchorId)
+{
   uint8_t slot = ctx.anchorCtxLookup[anchorId];
 
-  if (slot == ID_WITHOUT_CONTEXT) {
+  if (slot == ID_WITHOUT_CONTEXT)
+  {
     return 0;
   }
 
   return &ctx.anchorCtx[slot];
 }
 
-static void clearAnchorRxCount() {
+static void clearAnchorRxCount()
+{
   memset(&ctx.anchorRxCount, 0, ID_COUNT);
 }
 
-static void removeAnchorContextsNotInList(const uint8_t* id, const uint8_t count) {
-  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++) {
-    anchorContext_t* anchorCtx = &ctx.anchorCtx[i];
-    if (anchorCtx->isUsed) {
+static void removeAnchorContextsNotInList(const uint8_t *id, const uint8_t count)
+{
+  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++)
+  {
+    anchorContext_t *anchorCtx = &ctx.anchorCtx[i];
+    if (anchorCtx->isUsed)
+    {
       const uint8_t ctxId = anchorCtx->id;
       bool found = false;
-      for (int j = 0; j < count; j++) {
-        if (id[j] == ctxId) {
+      for (int j = 0; j < count; j++)
+      {
+        if (id[j] == ctxId)
+        {
           found = true;
           break;
         }
       }
 
-      if (!found) {
+      if (!found)
+      {
         ctx.anchorCtxLookup[ctxId] = ID_WITHOUT_CONTEXT;
         anchorCtx->isUsed = false;
       }
@@ -301,15 +333,19 @@ static void removeAnchorContextsNotInList(const uint8_t* id, const uint8_t count
   }
 }
 
-static void createAnchorContext(const uint8_t id) {
-  if (ctx.anchorCtxLookup[id] != ID_WITHOUT_CONTEXT) {
+static void createAnchorContext(const uint8_t id)
+{
+  if (ctx.anchorCtxLookup[id] != ID_WITHOUT_CONTEXT)
+  {
     // Already has a context, we're done
     return;
   }
 
-  for (uint8_t i = 0; i < ANCHOR_STORAGE_COUNT; i++) {
-    anchorContext_t* anchorCtx = &ctx.anchorCtx[i];
-    if (!anchorCtx->isUsed) {
+  for (uint8_t i = 0; i < ANCHOR_STORAGE_COUNT; i++)
+  {
+    anchorContext_t *anchorCtx = &ctx.anchorCtx[i];
+    if (!anchorCtx->isUsed)
+    {
       ctx.anchorCtxLookup[id] = i;
 
       memset(anchorCtx, 0, sizeof(anchorContext_t));
@@ -321,20 +357,26 @@ static void createAnchorContext(const uint8_t id) {
   }
 }
 
-static void createAnchorContextsInList(const uint8_t* id, const uint8_t count) {
-  for (uint8_t i = 0; i < count; i++) {
+static void createAnchorContextsInList(const uint8_t *id, const uint8_t count)
+{
+  for (uint8_t i = 0; i < count; i++)
+  {
     createAnchorContext(id[i]);
   }
 }
 
-static void purgeData() {
+static void purgeData()
+{
   uint32_t now = xTaskGetTickCount();
   uint32_t acceptedCreationTime = now - DISTANCE_VALIDITY_PERIOD;
 
-  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++) {
-    anchorContext_t* anchorCtx = &ctx.anchorCtx[i];
-    if (anchorCtx->isUsed) {
-      if (anchorCtx->distanceUpdateTime < acceptedCreationTime) {
+  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++)
+  {
+    anchorContext_t *anchorCtx = &ctx.anchorCtx[i];
+    if (anchorCtx->isUsed)
+    {
+      if (anchorCtx->distanceUpdateTime < acceptedCreationTime)
+      {
         anchorCtx->distance = 0;
 
         anchorCtx->clockCorrection = 0.0;
@@ -349,7 +391,8 @@ static void purgeData() {
 // update might take some time but this should not be a problem since the TX
 // times are randomized anyway. The intention is that we could plug in clever
 // algorithms here that optimizes which anchors to use.
-static void updateAnchorLists() {
+static void updateAnchorLists()
+{
   // Randomize which anchors to use
 
   static uint8_t availableId[ID_COUNT];
@@ -362,8 +405,10 @@ static void updateAnchorLists() {
   memset(ctxts, 0, sizeof(ctxts));
 
   // Collect all anchors we have got a message from
-  for (int i = 0; i < ID_COUNT; i++) {
-    if (ctx.anchorRxCount[i] != 0) {
+  for (int i = 0; i < ID_COUNT; i++)
+  {
+    if (ctx.anchorRxCount[i] != 0)
+    {
       availableId[availableCount++] = i;
     }
   }
@@ -372,18 +417,23 @@ static void updateAnchorLists() {
   // randomized subsets for storage and TX ids
   uint8_t remoteTXIdIndex = 0;
   uint8_t contextIndex = 0;
-  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++) {
+  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++)
+  {
     int start = rand() % availableCount;
     // Scan forward until we find an anchor
-    for (int j = start; j < (start + availableCount); j++) {
+    for (int j = start; j < (start + availableCount); j++)
+    {
       const int index = j % availableCount;
-      if (!availableUsed[index]) {
+      if (!availableUsed[index])
+      {
 
         const int id = availableId[index];
-        if (remoteTXIdIndex < REMOTE_TX_MAX_COUNT) {
+        if (remoteTXIdIndex < REMOTE_TX_MAX_COUNT)
+        {
           ctx.remoteTxId[remoteTXIdIndex++] = id;
         }
-        if (contextIndex < ANCHOR_STORAGE_COUNT) {
+        if (contextIndex < ANCHOR_STORAGE_COUNT)
+        {
           ctxts[contextIndex++] = id;
         }
 
@@ -402,10 +452,12 @@ static void updateAnchorLists() {
 
   // Set the TX rate based on the number of transmitting anchors around us
   float freq = ctx.systemTxFreq / (availableCount + 1);
-  if (freq > ANCHOR_MAX_TX_FREQ) {
+  if (freq > ANCHOR_MAX_TX_FREQ)
+  {
     freq = ANCHOR_MAX_TX_FREQ;
   }
-  if (freq < ANCHOR_MIN_TX_FREQ) {
+  if (freq < ANCHOR_MIN_TX_FREQ)
+  {
     freq = ANCHOR_MIN_TX_FREQ;
   }
   ctx.averageTxDelay = 1000.0 / freq;
@@ -421,7 +473,7 @@ static void adjustTxRxTime(dwTime_t *time)
 
 static dwTime_t findTransmitTimeAsSoonAsPossible(dwDevice_t *dev)
 {
-  dwTime_t transmitTime = { .full = 0 };
+  dwTime_t transmitTime = {.full = 0};
   dwGetSystemTimestamp(dev, &transmitTime);
 
   // Add guard and preamble time
@@ -437,7 +489,7 @@ static dwTime_t findTransmitTimeAsSoonAsPossible(dwDevice_t *dev)
   return transmitTime;
 }
 
-static double calculateClockCorrection(anchorContext_t* anchorCtx, int remoteTxSeqNr, uint32_t remoteTx, uint32_t rx)
+static double calculateClockCorrection(anchorContext_t *anchorCtx, int remoteTxSeqNr, uint32_t remoteTx, uint32_t rx)
 {
   double result = 0.0d;
 
@@ -445,43 +497,53 @@ static double calculateClockCorrection(anchorContext_t* anchorCtx, int remoteTxS
   uint32_t tickCountRemote = remoteTx - anchorCtx->txTimeStamp;
   uint32_t tickCountLocal = rx - anchorCtx->rxTimeStamp;
 
-  if (tickCountRemote != 0) {
+  if (tickCountRemote != 0)
+  {
     result = (double)tickCountLocal / (double)tickCountRemote;
   }
 
   return result;
 }
 
-static uint16_t calculateDistance(anchorContext_t* anchorCtx, int remoteRxSeqNr, uint32_t remoteTx, uint32_t remoteRx, uint32_t rx)
+static uint16_t calculateDistance(anchorContext_t *anchorCtx, int remoteRxSeqNr, uint32_t remoteTx, uint32_t remoteRx, uint32_t rx)
 {
   // Check that the remote received seq nr is our latest tx seq nr
-  if (remoteRxSeqNr == ctx.seqNr && anchorCtx->clockCorrection > 0.0d) {
+  if (remoteRxSeqNr == ctx.seqNr && anchorCtx->clockCorrection > 0.0d)
+  {
     uint32_t localTime = rx - ctx.txTime;
     uint32_t remoteTime = (uint32_t)((double)(remoteTx - remoteRx) * anchorCtx->clockCorrection);
     uint32_t distance = (localTime - remoteTime) / 2;
 
     return distance & 0xfffful;
-  } else {
+  }
+  else
+  {
     return 0;
   }
 }
 
-static bool extractFromPacket(const rangePacket3_t* rangePacket, uint32_t* remoteRx, uint8_t* remoteRxSeqNr) {
-  const void* anchorDataPtr = &rangePacket->remoteAnchorData;
-  for (uint8_t i = 0; i < rangePacket->header.remoteCount; i++) {
-    remoteAnchorDataFull_t* anchorData = (remoteAnchorDataFull_t*)anchorDataPtr;
+static bool extractFromPacket(const rangePacket3_t *rangePacket, uint32_t *remoteRx, uint8_t *remoteRxSeqNr)
+{
+  const void *anchorDataPtr = &rangePacket->remoteAnchorData;
+  for (uint8_t i = 0; i < rangePacket->header.remoteCount; i++)
+  {
+    remoteAnchorDataFull_t *anchorData = (remoteAnchorDataFull_t *)anchorDataPtr;
 
     const uint8_t id = anchorData->id;
-    if (id == ctx.anchorId) {
+    if (id == ctx.anchorId)
+    {
       *remoteRxSeqNr = anchorData->seq & 0x7f;
       *remoteRx = anchorData->rxTimeStamp;
       return true;
     }
 
     bool hasDistance = ((anchorData->seq & 0x80) != 0);
-    if (hasDistance) {
+    if (hasDistance)
+    {
       anchorDataPtr += sizeof(remoteAnchorDataFull_t);
-    } else {
+    }
+    else
+    {
       anchorDataPtr += sizeof(remoteAnchorDataShort_t);
     }
   }
@@ -489,34 +551,44 @@ static bool extractFromPacket(const rangePacket3_t* rangePacket, uint32_t* remot
   return false;
 }
 
-static void fillClockCorrectionBucket(anchorContext_t* anchorCtx) {
-    if (anchorCtx->clockCorrectionBucket < CLOCK_CORRECTION_BUCKET_MAX) {
-      anchorCtx->clockCorrectionBucket++;
-    }
+static void fillClockCorrectionBucket(anchorContext_t *anchorCtx)
+{
+  if (anchorCtx->clockCorrectionBucket < CLOCK_CORRECTION_BUCKET_MAX)
+  {
+    anchorCtx->clockCorrectionBucket++;
+  }
 }
 
-static bool emptyClockCorrectionBucket(anchorContext_t* anchorCtx) {
-    if (anchorCtx->clockCorrectionBucket > 0) {
-      anchorCtx->clockCorrectionBucket--;
-      return false;
-    }
+static bool emptyClockCorrectionBucket(anchorContext_t *anchorCtx)
+{
+  if (anchorCtx->clockCorrectionBucket > 0)
+  {
+    anchorCtx->clockCorrectionBucket--;
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
-static bool updateClockCorrection(anchorContext_t* anchorCtx, double clockCorrection) {
+static bool updateClockCorrection(anchorContext_t *anchorCtx, double clockCorrection)
+{
   const double diff = clockCorrection - anchorCtx->clockCorrection;
   bool sampleIsAccepted = false;
 
-  if (-CLOCK_CORRECTION_ACCEPTED_NOISE < diff && diff < CLOCK_CORRECTION_ACCEPTED_NOISE) {
+  if (-CLOCK_CORRECTION_ACCEPTED_NOISE < diff && diff < CLOCK_CORRECTION_ACCEPTED_NOISE)
+  {
     // LP filter
     anchorCtx->clockCorrection = anchorCtx->clockCorrection * (1.0d - CLOCK_CORRECTION_FILTER) + clockCorrection * CLOCK_CORRECTION_FILTER;
 
     fillClockCorrectionBucket(anchorCtx);
     sampleIsAccepted = true;
-  } else {
-    if (emptyClockCorrectionBucket(anchorCtx)) {
-      if (CLOCK_CORRECTION_SPEC_MIN < clockCorrection && clockCorrection < CLOCK_CORRECTION_SPEC_MAX) {
+  }
+  else
+  {
+    if (emptyClockCorrectionBucket(anchorCtx))
+    {
+      if (CLOCK_CORRECTION_SPEC_MIN < clockCorrection && clockCorrection < CLOCK_CORRECTION_SPEC_MAX)
+      {
         anchorCtx->clockCorrection = clockCorrection;
       }
     }
@@ -525,47 +597,88 @@ static bool updateClockCorrection(anchorContext_t* anchorCtx, double clockCorrec
   return sampleIsAccepted;
 }
 
-static void genMD5(md5_byte_t *input, uint8_t len, md5_byte_t *output) {
-    md5_state_t hash_state;
-    md5_init(&hash_state);
-    md5_append(&hash_state, input, len);
-    md5_finish(&hash_state, output);
+static void genMD5(md5_byte_t *input, uint8_t len, md5_byte_t *output)
+{
+  md5_state_t hash_state;
+  md5_init(&hash_state);
+  md5_append(&hash_state, input, len);
+  md5_finish(&hash_state, output);
 }
 
-static void handleRangePacket(const uint32_t localTime, uint32_t rxTime, const packet_t* rxPacket)
+
+static int getStartOfLpp(const void *payload) {
+  const rangePacket3_t* packet = (rangePacket3_t*)payload;
+  const void *anchorDataPtr = &packet->remoteAnchorData;
+  for (uint8_t i = 0; i < packet->header.remoteCount; i++) {
+    remoteAnchorDataFull_t *anchorData = (remoteAnchorDataFull_t *)anchorDataPtr;
+    bool hasDistance = ((anchorData->seq & 0x80) != 0);
+    anchorDataPtr += hasDistance ? sizeof(remoteAnchorDataFull_t) : sizeof(remoteAnchorDataShort_t);
+  }
+  return (uint8_t*)anchorDataPtr - (uint8_t*)packet;;
+}
+static void syncTimeUsingLpp(const uint32_t localTime, const double clockCorrection, const int dataLength, int rangePacketLength, const packet_t* rxPacket, anchorContext_t* anchorCtx) {
+  const int32_t payloadLength = dataLength - MAC802154_HEADER_LENGTH;
+  const int32_t startOfLppDataInPayload = rangePacketLength;
+  const int32_t lppDataLength = payloadLength - startOfLppDataInPayload;
+  const int32_t lppTypeInPayload = startOfLppDataInPayload + 1;
+  if (lppDataLength > 0) {
+    const uint8_t lppPacketHeader = rxPacket->payload[startOfLppDataInPayload];
+    if (lppPacketHeader == SHORT_LPP) {
+      const uint8_t *data = &rxPacket->payload[lppTypeInPayload];
+      uint8_t type = data[0];
+      if (type == LPP_SHORT_ANCHOR_POSITION) {
+        struct lppShortAnchorPosition_s *newpos = (struct lppShortAnchorPosition_s*)&data[1];
+        uint32_t incomingGlobalTime = newpos->globalTime;
+        if (incomingGlobalTime != 0 && anchorCtx->id > 7)
+        { // make sure it's master or someone who's already talked to master
+          ctx.gOffset = incomingGlobalTime - localTime;
+          ctx.lastUpdatedTime = STD_TIME_TO_SEC(localTime * clockCorrection + ctx.gOffset);
+        }
+      }
+    }
+  }
+}
+
+
+static void handleRangePacket(const int dataLength, const uint32_t localTime, uint32_t rxTime, const packet_t *rxPacket)
 {
   const uint8_t remoteAnchorId = rxPacket->sourceAddress[0];
+
   ctx.anchorRxCount[remoteAnchorId]++;
-  anchorContext_t* anchorCtx = getContext(remoteAnchorId);
-  if (anchorCtx) {
-    const rangePacket3_t* rangePacket = (rangePacket3_t *)rxPacket->payload;
+  anchorContext_t *anchorCtx = getContext(remoteAnchorId);
+  if (anchorCtx)
+  {
+    const rangePacket3_t *rangePacket = (rangePacket3_t *)rxPacket->payload;
 
     uint32_t remoteTx = rangePacket->header.txTimeStamp;
-    uint32_t incomingGlobalTime = rangePacket->header.globalTime;
     uint8_t remoteTxSeqNr = rangePacket->header.seq;
 
     double clockCorrection = calculateClockCorrection(anchorCtx, remoteTxSeqNr, remoteTx, rxTime);
-    if (updateClockCorrection(anchorCtx, clockCorrection)) {
-      if (incomingGlobalTime != 0 && anchorCtx->id >= 8) { // make sure it's master or someone who's already talked to master
-        ctx.gOffset = incomingGlobalTime - localTime;
-        ctx.lastUpdatedTime = STD_TIME_TO_SEC(localTime * clockCorrection + ctx.gOffset);
-      }
-        
+    if (updateClockCorrection(anchorCtx, clockCorrection))
+    {
+      
+      int rangeDataLength = getStartOfLpp(rangePacket);
+      syncTimeUsingLpp(localTime, clockCorrection, dataLength, rangeDataLength, rxPacket, anchorCtx);
+
       anchorCtx->isDataGoodForTransmission = true;
 
       uint32_t remoteRx = 0;
       uint8_t remoteRxSeqNr = 0;
       bool dataFound = extractFromPacket(rangePacket, &remoteRx, &remoteRxSeqNr);
-      if (dataFound) {
+      if (dataFound)
+      {
         uint16_t distance = calculateDistance(anchorCtx, remoteRxSeqNr, remoteTx, remoteRx, rxTime);
 
         // TODO krri Remove outliers in distances
-        if (distance > MIN_TOF) {
+        if (distance > MIN_TOF)
+        {
           anchorCtx->distance = distance;
           anchorCtx->distanceUpdateTime = xTaskGetTickCount();
         }
       }
-    } else {
+    }
+    else
+    {
       anchorCtx->isDataGoodForTransmission = false;
     }
 
@@ -584,17 +697,18 @@ static void updateConstellation(uint8_t anchorId, char *data, size_t length) {
     }
 }
 */
-
+static uint64_t fullTime = 0;
 static void handleRxPacket(dwDevice_t *dev)
 {
-  
+
   rxCalls++;
 
   static packet_t rxPacket;
-  dwTime_t rxTime = { .full = 0 };
+  dwTime_t rxTime = {.full = 0};
 
   dwGetRawReceiveTimestamp(dev, &rxTime);
   dwCorrectTimestamp(dev, &rxTime);
+  fullTime = rxTime.full;
 
   _rxWrapovers = _lastRX > rxTime.high32 ? _rxWrapovers + 1 : _rxWrapovers;
 
@@ -604,23 +718,31 @@ static void handleRxPacket(dwDevice_t *dev)
 
   int dataLength = dwGetDataLength(dev);
   rxPacket.payload[0] = 0;
-  dwGetData(dev, (uint8_t*)&rxPacket, dataLength);
+  dwGetData(dev, (uint8_t *)&rxPacket, dataLength);
 
-  if (dataLength == 0) {
+  if (dataLength == 0)
+  {
     return;
   }
 
-  if (rxPacket.sourceAddress[0] < 8 || rxPacket.sourceAddress[0] > 15) { // assume anchors 8...15 to be the only valid constellation
-      return;
+  if (!fullTime) {
+    return;
   }
-    
-  switch(rxPacket.payload[0]) {
+
+  if (rxPacket.sourceAddress[0] < 8 || rxPacket.sourceAddress[0] > 15)
+  { // assume anchors 8...15 to be the only valid constellation
+    return;
+  }
+
+  switch (rxPacket.payload[0])
+  {
   case PACKET_TYPE_TDOA3:
-    handleRangePacket(localTime, rxTime.low32, &rxPacket);
-    //updateConstellation(rxPacket.sourceAddress[0], &rxPacket.payload[1], dataLength - MAC802154_HEADER_LENGTH - 1);
+    handleRangePacket(dataLength, localTime, rxTime.low32, &rxPacket);
+    // updateConstellation(rxPacket.sourceAddress[0], &rxPacket.payload[1], dataLength - MAC802154_HEADER_LENGTH - 1);
     break;
   case SHORT_LPP:
-    if (rxPacket.destAddress[0] == ctx.anchorId) {
+    if (rxPacket.destAddress[0] == ctx.anchorId)
+    {
       lppHandleShortPacket(&rxPacket.payload[1], dataLength - MAC802154_HEADER_LENGTH - 1);
     }
     break;
@@ -642,36 +764,29 @@ static int populateTxData(rangePacket3_t *rangePacket)
   // rangePacket->header.type already populated
   rangePacket->header.seq = ctx.seqNr;
   rangePacket->header.txTimeStamp = ctx.txTime;
-  _txWrapOvers = _lastTX > ctx.txTimeHi32 ? _txWrapOvers + 1 : _txWrapOvers;
-  _lastTX = ctx.txTimeHi32;
-  uint32_t localTime = GET_STD_TIME(_lastTX, _txWrapOvers);
-  if (ctx.anchorId == 8) {
-      rangePacket->header.globalTime = localTime;
-  } else {
-      if (ctx.gOffset == 0) {
-        rangePacket->header.globalTime = 0; // has not talked to master yet
-      } else {
-        rangePacket->header.globalTime = localTime + ctx.gOffset; // cc? handled by rx?
-      }
-  }
   uint8_t remoteAnchorCount = 0;
-  uint8_t* anchorDataPtr = &rangePacket->remoteAnchorData;
-  for (uint8_t i = 0; i < ctx.remoteTxIdCount; i++) {
-    remoteAnchorDataFull_t* anchorData = (remoteAnchorDataFull_t*) anchorDataPtr;
+  uint8_t *anchorDataPtr = &rangePacket->remoteAnchorData;
+  for (uint8_t i = 0; i < ctx.remoteTxIdCount; i++)
+  {
+    remoteAnchorDataFull_t *anchorData = (remoteAnchorDataFull_t *)anchorDataPtr;
 
     uint8_t id = ctx.remoteTxId[i];
-    anchorContext_t* anchorCtx = getContext(id);
+    anchorContext_t *anchorCtx = getContext(id);
 
-    if (anchorCtx->isDataGoodForTransmission) {
+    if (anchorCtx->isDataGoodForTransmission)
+    {
       anchorData->id = id;
       anchorData->seq = anchorCtx->seqNr;
       anchorData->rxTimeStamp = anchorCtx->rxTimeStamp;
 
-      if (anchorCtx->distance > 0) {
+      if (anchorCtx->distance > 0)
+      {
         anchorData->distance = anchorCtx->distance;
         anchorDataPtr += sizeof(remoteAnchorDataFull_t);
         anchorData->seq |= 0x80;
-      } else {
+      }
+      else
+      {
         anchorDataPtr += sizeof(remoteAnchorDataShort_t);
       }
 
@@ -680,7 +795,7 @@ static int populateTxData(rangePacket3_t *rangePacket)
   }
   rangePacket->header.remoteCount = remoteAnchorCount;
 
-  return (uint8_t*)anchorDataPtr - (uint8_t*)rangePacket;
+  return (uint8_t *)anchorDataPtr - (uint8_t *)rangePacket;
 }
 
 // Set TX data in the radio TX buffer
@@ -690,7 +805,8 @@ static void setTxData(dwDevice_t *dev)
   static bool firstEntry = true;
   static int lppLength = 0;
 
-  if (firstEntry) {
+  if (firstEntry)
+  {
     MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);
 
     memcpy(txPacket.sourceAddress, base_address, 8);
@@ -701,53 +817,60 @@ static void setTxData(dwDevice_t *dev)
     txPacket.payload[0] = PACKET_TYPE_TDOA3;
 
     firstEntry = false;
-
   }
+
+  _txWrapOvers = _lastTX > ctx.txTimeHi32 ? _txWrapOvers + 1 : _txWrapOvers;
+  _lastTX = ctx.txTimeHi32;
+  uint32_t localTime = GET_STD_TIME(_lastTX, _txWrapOvers);
 
   int rangePacketSize = populateTxData((rangePacket3_t *)txPacket.payload);
 
   // LPP anchor position is currently sent in all packets
-  if (uwbGetConfig()->positionEnabled) {
+  if (uwbGetConfig()->positionEnabled)
+  {
     lppCalls++;
     txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
     txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
-    struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[rangePacketSize + LPP_PAYLOAD];
-      
+    struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s *)&txPacket.payload[rangePacketSize + LPP_PAYLOAD];
 
-      // TODO: make sure the interval here matches the one when creating hmac
-      uint8_t I = ctx.nav.I;
-      uint8_t prevKeyIndex = getKeyIndexFor(I-1);
-      uint8_t lastKeyIndex = getKeyIndexFor(LAST_KEY_INDEX);
-
-      md5_byte_t *prevKey = sharedKeychain[I ? prevKeyIndex : lastKeyIndex];
-      pos->interval = I;
-      memcpy(pos->position, ctx.nav.position, 3 * sizeof(float));
-      memcpy(pos->mac, ctx.hmac, HASH_LEN);
-
-
-      memcpy(pos->disclosedKey, prevKey, HASH_LEN);
-      
-      
-      //md5_byte_t nextConstellationHash[16];
-      // we currently assume anchor's position don't change over time once set
-      // this is a strong assumption for two reasons:
-      // 1. CF also needs to maintain full AND valid constellation
-      // 2. CF cannot start if it doesn't know hash of full and valid constellation at start of protocol
-      // 3. anchors need to know any change in the constellation in advance
-      // Maybe hard-code initial constellation?
-      // TODO: maintain next constellation in LPP
-      //genMD5((md5_byte_t *)validConstellation, 8*3*sizeof(float), nextConstellationHash);
-
-      //hmac_md5(prevKey, 16, currentKey, 16, pos->disclosedKey);
-      //memset(pos->interval, &currentInterval, 1);
-
-
-      lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
-  }
+    // TODO: make sure the interval here matches the one when creating hmac
+    uint8_t I = ctx.nav.I;
+    uint8_t prevKeyIndex = getPreviousKeyIndexFor(I);
+    md5_byte_t *prevKey = sharedKeychain[prevKeyIndex];
+    pos->interval = I;
+    memcpy(pos->position, ctx.nav.position, 3 * sizeof(float));
+    memcpy(pos->mac, ctx.hmac, MAC_TRNC_LEN);
+    memcpy(pos->disclosedKey, prevKey, KEY_LEN);
+    
+    if (ctx.anchorId == 8) { 
+      pos->globalTime = localTime; // master
+    } else {
+      if (ctx.gOffset == 0) {
+        pos->globalTime = 0; // has not talked to master yet
+      } else {
+        pos->globalTime = localTime + ctx.gOffset; // cc? handled by rx?
+      }
+    }
     
 
-  dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH + rangePacketSize + lppLength);
+    // md5_byte_t nextConstellationHash[16];
+    //  we currently assume anchor's position don't change over time once set
+    //  this is a strong assumption for two reasons:
+    //  1. CF also needs to maintain full AND valid constellation
+    //  2. CF cannot start if it doesn't know hash of full and valid constellation at start of protocol
+    //  3. anchors need to know any change in the constellation in advance
+    //  Maybe hard-code initial constellation?
+    //  TODO: maintain next constellation in LPP
+    // genMD5((md5_byte_t *)validConstellation, 8*3*sizeof(float), nextConstellationHash);
+
+    // hmac_md5(prevKey, 16, currentKey, 16, pos->disclosedKey);
+    // memset(pos->interval, &currentInterval, 1);
+
+    lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
+  }
+
+  dwSetData(dev, (uint8_t *)&txPacket, MAC802154_HEADER_LENGTH + rangePacketSize + lppLength);
 }
 
 // Setup the radio to send a packet
@@ -760,7 +883,7 @@ static void setupTx(dwDevice_t *dev)
   ctx.seqNr = (ctx.seqNr + 1) & 0x7f;
 
   setTxData(dev);
-  
+
   dwNewTransmit(dev);
   dwSetDefaults(dev);
   dwSetTxRxTime(dev, txTime);
@@ -782,30 +905,34 @@ static uint32_t startNextEvent(dwDevice_t *dev, uint32_t now)
 {
   dwIdle(dev);
 
-  if (ctx.nextTxTick < now) {
+  if (ctx.nextTxTick < now)
+  {
     ctx.nav.I = getCurrentMockIntervalBasedOnLastInfo();
     uint8_t keyIndex = getKeyIndexFor(ctx.nav.I);
     md5_byte_t *key = sharedKeychain[keyIndex];
-    memcpy(ctx.nav.position, uwbGetConfig()->position, 3*sizeof(float));
-    //hmac_md5((md5_byte_t *)&ctx.nav, 12, keyIndex, HASH_LEN, ctx.hmac);
-    hmac_md5(ctx.nav.position, 12, key, HASH_LEN, ctx.hmac);
+    memcpy(ctx.nav.position, uwbGetConfig()->position, 3 * sizeof(float));
+    // hmac_md5((md5_byte_t *)&ctx.nav, 12, keyIndex, HASH_LEN, ctx.hmac);
+
+    hmac_md5(ctx.nav.position, 12, key, KEY_LEN, ctx.hmac);
     ctx.computedHMACI = ctx.nav.I;
     uint32_t newDelay = randomizeDelayToNextTx();
     ctx.nextTxTick = now + M2T(newDelay);
     setupTx(dev);
-  } else {
+  }
+  else
+  {
     setupRx(dev);
   }
 
   return ctx.nextTxTick - now;
 }
 
-
 // Initialize/reset the algorithm
-static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
+static void tdoa3Init(uwbConfig_t *config, dwDevice_t *dev)
 {
   float systemTxFreq = SYSTEM_TX_FREQ_HIGH_BITRATE;
-  if (config->lowBitrate) {
+  if (config->lowBitrate)
+  {
     systemTxFreq = SYSTEM_TX_FREQ_LOW_BITRATE;
   }
 
@@ -821,7 +948,8 @@ static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
   ctx.nextAnchorListUpdate = 0;
 
   memset(&ctx.anchorCtxLookup, ID_WITHOUT_CONTEXT, ID_COUNT);
-  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++) {
+  for (int i = 0; i < ANCHOR_STORAGE_COUNT; i++)
+  {
     ctx.anchorCtx[i].isUsed = false;
   }
 
@@ -830,32 +958,36 @@ static void tdoa3Init(uwbConfig_t * config, dwDevice_t *dev)
   srand(ctx.anchorId);
 
   md5_byte_t s = 0x0;
-  md5_byte_t firstKey[HASH_LEN];
+  md5_byte_t firstKey[KEY_LEN];
   genMD5(&s, 1, firstKey);
-  memcpy(sharedKeychain[0], firstKey, HASH_LEN);
-  for (int i = 1; i < KEYCHAIN_SIZE;i++) {
-      md5_byte_t hash[HASH_LEN];
-      genMD5(sharedKeychain[i-1], HASH_LEN, hash);
-      memcpy(sharedKeychain[i], hash, HASH_LEN);
+  memcpy(sharedKeychain[0], firstKey, KEY_LEN);
+  for (int i = 1; i < KEYCHAIN_SIZE; i++)
+  {
+    md5_byte_t hash[KEY_LEN];
+    genMD5(sharedKeychain[i - 1], KEY_LEN, hash);
+    memcpy(sharedKeychain[i], hash, KEY_LEN);
   }
-  genMD5(sharedKeychain[KEYCHAIN_SIZE-1], HASH_LEN, k0);
+  genMD5(sharedKeychain[KEYCHAIN_SIZE - 1], KEY_LEN, k0);
 }
 
 // Called for each DW radio event
 static uint32_t tdoa3UwbEvent(dwDevice_t *dev, uwbEvent_t event)
 {
-  switch (event) {
-    case eventPacketReceived: {
-        handleRxPacket(dev);
-      }
-      break;
-    default:
-      // Nothing here
-      break;
+  switch (event)
+  {
+  case eventPacketReceived:
+  {
+    handleRxPacket(dev);
+  }
+  break;
+  default:
+    // Nothing here
+    break;
   }
 
   uint32_t now = xTaskGetTickCount();
-  if (now > ctx.nextAnchorListUpdate) {
+  if (now > ctx.nextAnchorListUpdate)
+  {
     updateAnchorLists();
     ctx.nextAnchorListUpdate = now + ANCHOR_LIST_UPDATE_INTERVAL;
   }
@@ -864,8 +996,7 @@ static uint32_t tdoa3UwbEvent(dwDevice_t *dev, uwbEvent_t event)
   return timeout_ms;
 }
 
-
 uwbAlgorithm_t uwbTdoa3Algorithm = {
-  .init = tdoa3Init,
-  .onEvent = tdoa3UwbEvent,
+    .init = tdoa3Init,
+    .onEvent = tdoa3UwbEvent,
 };

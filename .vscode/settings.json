@@ -20,7 +20,11 @@
         "hmac_md5.h": "c",
         "cstdint": "c",
         "chrono": "c",
-        "ratio": "c"
+        "ratio": "c",
+        "bootmode.h": "c"
     },
-    "cortex-debug.variableUseNaturalFormat": true
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.exclude": {
+        "**/*.o": true
+    }
 }

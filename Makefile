@@ -105,6 +105,7 @@ dfu:
 	dfu-util -d 0483:df11 -a 0 -D bin/lps-node-firmware.dfu -s :leave
 
 factory:
+	tools/make/reset-to-dfu.py
 	dfu-util -d 0483:df11 -a 0 -D lps-node-firmware-2022.09.dfu -s :leave
 
 reset_and_dfu:
@@ -114,6 +115,11 @@ reset_and_dfu:
 docker:
 	docker run --rm -v ${PWD}:/module bitcraze/builder ./tools/build/compile
 
+flashall:
+	for path in $$(dfu-util --list | grep -o 'path="[0-9.-]*"' | cut -d'"' -f2 | sort -u); do \
+		dfu-util -d 0483:df11 -D bin/lps-node-firmware.dfu -a $$path -s :leave ; \
+	done
+    
 # Generic rules
 %.bin: %.elf
 	$(OBJCOPY) $^ -O binary $@
