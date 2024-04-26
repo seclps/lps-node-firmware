@@ -116,11 +116,19 @@ The implementation must handle
 
 #define DISTANCE_VALIDITY_PERIOD M2T(3 * 1000);
 
+/*
 #define TIME_SCALEDOWN_FACTOR 1e3
 #define SCALEDDOWN_UINT32_MAX (UINT32_MAX / TIME_SCALEDOWN_FACTOR)
 #define GET_STD_TIME(time, wrapovers) ((time) / TIME_SCALEDOWN_FACTOR + (wrapovers) * SCALEDDOWN_UINT32_MAX)
-#define SECS_PER_WRAP 17.2074010256
-#define STD_TIME_TO_SEC(time) (((time) / SCALEDDOWN_UINT32_MAX) * SECS_PER_WRAP)
+*/
+
+#define LEN_STAMP_BITS (LEN_STAMP * 8)
+#define STAMP_MAX ((1ULL << LEN_STAMP_BITS) - 1)
+#define ACCOUNT_WRAPOVERS(t, wo) (t + (wo << LEN_STAMP_BITS))
+#define SECS_PER_WRAP 17.2074010256f
+#define STD_TIME_FACTOR (SECS_PER_WRAP / STAMP_MAX)
+#define MS_PER_WRAP (SECS_PER_WRAP / 1000.0f)
+//#define GET_TIME_SEC(t) (((t) >> 40) * MS_PER_WRAP)
 
 // 1099511627775
 // 4294967295
@@ -159,9 +167,8 @@ static struct ctx_s
   // Information about latest transmitted packet
   uint8_t seqNr;
   uint32_t txTime;     // In UWB clock ticks
-  uint32_t txTimeHi32; // In UWB clock ticks
   // Global time, set to local if master, ow set to header.globalTime
-  int32_t gOffset;
+  int64_t gOffset;
   float lastUpdatedTime;
 
   // Next transmit time in system clock ticks
@@ -234,21 +241,21 @@ typedef struct
 #define LPP_PAYLOAD (LPP_HEADER + 2)
 
 #define KEYCHAIN_SIZE 200
-#define DATA_FREQ 10.0
-#define DATA_PER_SEC (1.0 / DATA_FREQ)
+//#define DATA_FREQ 10.0f
+#define DATA_FREQ 1.0f
+#define DATA_PER_SEC (1.0f / DATA_FREQ)
 #define LIFESPAN ((uint16_t)(KEYCHAIN_SIZE * DATA_PER_SEC))
 #define LAST_KEY_INDEX (KEYCHAIN_SIZE - 1)
 #define INTERVAL_LEN_IN_MS (DATA_PER_SEC * 1000)
 
 #define DISCLOSURE_DELAY 1
 
-static uint32_t _lastRX = 0;
-static uint8_t _rxWrapovers = 0;
-static uint8_t _txWrapOvers = 0;
-static uint32_t _lastTX = 0;
+static uint64_t lastSysTime = 0;
+static uint64_t wrapovers = 0;
 static uint16_t txCalls = 0;
 static uint16_t rxCalls = 0;
 static uint16_t lppCalls = 0;
+static uint16_t rangeCalcCount = 0;
 
 static md5_byte_t sharedKeychain[KEYCHAIN_SIZE][KEY_LEN]; // = {0};
 static md5_byte_t k0[KEY_LEN];                            // = {0};
@@ -258,7 +265,14 @@ static md5_byte_t k0[KEY_LEN];                            // = {0};
 static uint8_t getCurrentMockIntervalBasedOnLastInfo()
 {
   // return 1;
-  double time = ctx.lastUpdatedTime;
+
+  const uint64_t localTime = ACCOUNT_WRAPOVERS(lastSysTime, wrapovers);
+  int64_t syncTime = localTime + ctx.gOffset;
+	ctx.lastUpdatedTime = syncTime * STD_TIME_FACTOR; //1.565004006E-11f
+  float time = ctx.lastUpdatedTime;
+
+  return (uint8_t)((uint16_t)time % LIFESPAN);
+
   uint16_t whole = (uint16_t)time;
   // return whole % LIFESPAN;
   uint16_t centi = (time - whole) * 100;
@@ -616,7 +630,7 @@ static int getStartOfLpp(const void *payload) {
   }
   return (uint8_t*)anchorDataPtr - (uint8_t*)packet;;
 }
-static void syncTimeUsingLpp(const uint32_t localTime, const double clockCorrection, const int dataLength, int rangePacketLength, const packet_t* rxPacket, anchorContext_t* anchorCtx) {
+static void syncTimeUsingLpp(const uint64_t localTime, const double clockCorrection, const int dataLength, int rangePacketLength, const packet_t* rxPacket, anchorContext_t* anchorCtx) {
   const int32_t payloadLength = dataLength - MAC802154_HEADER_LENGTH;
   const int32_t startOfLppDataInPayload = rangePacketLength;
   const int32_t lppDataLength = payloadLength - startOfLppDataInPayload;
@@ -628,11 +642,12 @@ static void syncTimeUsingLpp(const uint32_t localTime, const double clockCorrect
       uint8_t type = data[0];
       if (type == LPP_SHORT_ANCHOR_POSITION) {
         struct lppShortAnchorPosition_s *newpos = (struct lppShortAnchorPosition_s*)&data[1];
-        uint32_t incomingGlobalTime = newpos->globalTime;
-        if (incomingGlobalTime != 0 && anchorCtx->id > 7)
+        const uint64_t incomingGlobalTime = newpos->globalTime;
+        if (incomingGlobalTime != 0 && anchorCtx->id > 8) // not 8 itself
+        //if (anchorCtx->id == 8)
         { // make sure it's master or someone who's already talked to master
           ctx.gOffset = incomingGlobalTime - localTime;
-          ctx.lastUpdatedTime = STD_TIME_TO_SEC(localTime * clockCorrection + ctx.gOffset);
+          //ctx.lastUpdatedTime = fixedTime * 0.01720740103f;
         }
       }
     }
@@ -640,7 +655,7 @@ static void syncTimeUsingLpp(const uint32_t localTime, const double clockCorrect
 }
 
 
-static void handleRangePacket(const int dataLength, const uint32_t localTime, uint32_t rxTime, const packet_t *rxPacket)
+static void handleRangePacket(const int dataLength, const uint64_t localTime, uint32_t rxTime, const packet_t *rxPacket)
 {
   const uint8_t remoteAnchorId = rxPacket->sourceAddress[0];
 
@@ -658,6 +673,7 @@ static void handleRangePacket(const int dataLength, const uint32_t localTime, ui
     {
       
       int rangeDataLength = getStartOfLpp(rangePacket);
+
       syncTimeUsingLpp(localTime, clockCorrection, dataLength, rangeDataLength, rxPacket, anchorCtx);
 
       anchorCtx->isDataGoodForTransmission = true;
@@ -686,6 +702,7 @@ static void handleRangePacket(const int dataLength, const uint32_t localTime, ui
     anchorCtx->seqNr = remoteTxSeqNr;
     anchorCtx->txTimeStamp = remoteTx;
   }
+  rangeCalcCount++;
 }
 
 /*
@@ -697,7 +714,6 @@ static void updateConstellation(uint8_t anchorId, char *data, size_t length) {
     }
 }
 */
-static uint64_t fullTime = 0;
 static void handleRxPacket(dwDevice_t *dev)
 {
 
@@ -708,13 +724,9 @@ static void handleRxPacket(dwDevice_t *dev)
 
   dwGetRawReceiveTimestamp(dev, &rxTime);
   dwCorrectTimestamp(dev, &rxTime);
+  static uint64_t fullTime = 0;
   fullTime = rxTime.full;
 
-  _rxWrapovers = _lastRX > rxTime.high32 ? _rxWrapovers + 1 : _rxWrapovers;
-
-  _lastRX = rxTime.high32;
-
-  const uint32_t localTime = GET_STD_TIME(_lastRX, _rxWrapovers);
 
   int dataLength = dwGetDataLength(dev);
   rxPacket.payload[0] = 0;
@@ -737,7 +749,8 @@ static void handleRxPacket(dwDevice_t *dev)
   switch (rxPacket.payload[0])
   {
   case PACKET_TYPE_TDOA3:
-    handleRangePacket(dataLength, localTime, rxTime.low32, &rxPacket);
+
+    handleRangePacket(dataLength, ACCOUNT_WRAPOVERS(lastSysTime, wrapovers), rxTime.low32, &rxPacket);
     // updateConstellation(rxPacket.sourceAddress[0], &rxPacket.payload[1], dataLength - MAC802154_HEADER_LENGTH - 1);
     break;
   case SHORT_LPP:
@@ -798,6 +811,7 @@ static int populateTxData(rangePacket3_t *rangePacket)
   return (uint8_t *)anchorDataPtr - (uint8_t *)rangePacket;
 }
 
+
 // Set TX data in the radio TX buffer
 static void setTxData(dwDevice_t *dev)
 {
@@ -819,16 +833,16 @@ static void setTxData(dwDevice_t *dev)
     firstEntry = false;
   }
 
-  _txWrapOvers = _lastTX > ctx.txTimeHi32 ? _txWrapOvers + 1 : _txWrapOvers;
-  _lastTX = ctx.txTimeHi32;
-  uint32_t localTime = GET_STD_TIME(_lastTX, _txWrapOvers);
+
+  const uint64_t localTime = ACCOUNT_WRAPOVERS(lastSysTime, wrapovers);
+
+  uwbConfig_t *uwbConfig = uwbGetConfig();
 
   int rangePacketSize = populateTxData((rangePacket3_t *)txPacket.payload);
 
   // LPP anchor position is currently sent in all packets
-  if (uwbGetConfig()->positionEnabled)
+  if (uwbConfig->positionEnabled)
   {
-    lppCalls++;
     txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
     txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
@@ -868,6 +882,8 @@ static void setTxData(dwDevice_t *dev)
     // memset(pos->interval, &currentInterval, 1);
 
     lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
+    lppCalls++;
+
   }
 
   dwSetData(dev, (uint8_t *)&txPacket, MAC802154_HEADER_LENGTH + rangePacketSize + lppLength);
@@ -879,7 +895,6 @@ static void setupTx(dwDevice_t *dev)
   txCalls++;
   dwTime_t txTime = findTransmitTimeAsSoonAsPossible(dev);
   ctx.txTime = txTime.low32;
-  ctx.txTimeHi32 = txTime.high32;
   ctx.seqNr = (ctx.seqNr + 1) & 0x7f;
 
   setTxData(dev);
@@ -905,6 +920,16 @@ static uint32_t startNextEvent(dwDevice_t *dev, uint32_t now)
 {
   dwIdle(dev);
 
+  dwTime_t sysTime = {.full = 0};
+
+  dwGetSystemTimestamp(dev, &sysTime);
+
+  wrapovers = lastSysTime > sysTime.full ? wrapovers + 1 : wrapovers;
+
+  if (sysTime.full) {
+    lastSysTime = sysTime.full;
+  }
+
   if (ctx.nextTxTick < now)
   {
     ctx.nav.I = getCurrentMockIntervalBasedOnLastInfo();
@@ -913,7 +938,7 @@ static uint32_t startNextEvent(dwDevice_t *dev, uint32_t now)
     memcpy(ctx.nav.position, uwbGetConfig()->position, 3 * sizeof(float));
     // hmac_md5((md5_byte_t *)&ctx.nav, 12, keyIndex, HASH_LEN, ctx.hmac);
 
-    hmac_md5(ctx.nav.position, 12, key, KEY_LEN, ctx.hmac);
+    hmac_md5((md5_byte_t *)ctx.nav.position, 12, key, KEY_LEN, ctx.hmac);
     ctx.computedHMACI = ctx.nav.I;
     uint32_t newDelay = randomizeDelayToNextTx();
     ctx.nextTxTick = now + M2T(newDelay);
@@ -939,7 +964,6 @@ static void tdoa3Init(uwbConfig_t *config, dwDevice_t *dev)
   ctx.anchorId = config->address[0];
   ctx.seqNr = 0;
   ctx.txTime = 0;
-  ctx.txTimeHi32 = 0;
   ctx.gOffset = 0;
   ctx.nextTxTick = 0;
   ctx.systemTxFreq = systemTxFreq;

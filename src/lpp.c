@@ -136,7 +136,7 @@ void lppHandleShortPacket(char *data, size_t length)
 
       break;
     }
-      
+     /* 
     case LPP_SHORT_INIT_TESLA:
     {
       struct lppShortInitTESLA_s* teslaInfo = (struct lppShortInitTESLA_s*)&data[1];
@@ -146,5 +146,6 @@ void lppHandleShortPacket(char *data, size_t length)
       
       break;
     }
+    */
   }
 }

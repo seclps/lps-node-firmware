@@ -43,6 +43,7 @@ void lppHandleShortPacket(char *data, size_t length);
 
 #define MAC_FULL_LEN 16
 #define MAC_TRNC_LEN 8
+#define KEY_TRNC_LEN 8
 #define KEY_LEN 16
 
 struct lppShortAnchorPosition_s {
@@ -50,7 +51,7 @@ struct lppShortAnchorPosition_s {
   uint8_t interval;
   md5_byte_t mac[MAC_TRNC_LEN];
   md5_byte_t disclosedKey[KEY_LEN];
-  uint32_t globalTime;
+  uint64_t globalTime;
   //md5_byte_t nextConstellationHash[8];
 } __attribute__((packed));
 

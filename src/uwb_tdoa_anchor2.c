@@ -287,7 +287,7 @@ static void setupRx(dwDevice_t *dev)
   //queueHandleTESLA = xQueueCreateStatic(QUEUE_LENGTH, ITEM_SIZE, buf, &queueTESLA);
 
 }
-
+/*
 static const uint8_t hashebytes[8][16] = {
 {0x1f,0x2e,0x2b,0x19,0xf2,0xb9,0xdb,0x68,0x5e,0xf0,0x5b,0x65,0x38,0x5a,0x40,0x62},// Anchor('0',-1,-1,0)
 {0xaf,0xc1,0xd3,0xc0,0xf6,0x82,0xb3,0xe6,0x9b,0xe9,0xff,0xfe,0x71,0x39,0xe0,0x68},// Anchor('1',-1,+1,1)
@@ -298,6 +298,7 @@ static const uint8_t hashebytes[8][16] = {
 {0xc9,0xcc,0xdc,0xfe,0xa6,0x75,0x0d,0xda,0x1c,0x5e,0x82,0x0f,0x4e,0xca,0xcb,0x5e},// Anchor('6',+1,+1,1)
 {0x39,0xb5,0xd4,0xeb,0x7f,0xed,0x44,0xdd,0x43,0x70,0x21,0x2c,0xff,0x27,0x43,0x17} // Anchor('7',+1,-1,0)
 };
+*/
 static uint64_t txcounter = 0;
 #define TESLA_TOTAL_DURATION 10
 md5_byte_t keychain[TESLA_TOTAL_DURATION] = {'\0'}; // 50 lpp/s over 10 minutes of keysize 8
@@ -408,8 +409,9 @@ static void updateSlot()
   }
 }
 
-static const int period = 10 * 1000; // 10 sec
+//static const int period = 10 * 1000; // 10 sec
 
+/*
 static int roundToNearestMultiple(int n) {
     // Smaller multiple
     int a = (n / period) * period;
@@ -418,6 +420,7 @@ static int roundToNearestMultiple(int n) {
     // Return of closest of two
     return (n - a > b - n) ? b : a;
 }
+*/
 
 // slotStep is called once per timeslot as long as TDMA is synched and setup
 // the next timeslot action
